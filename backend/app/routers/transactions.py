@@ -40,9 +40,12 @@ class ConnectionManager:
     async def broadcast(self, message: str, ledgerId: str):
         print("broadcast")
         for connection in self.active_connections:
-            print(connection)
-            if connection.path_params['ledgerId'] == ledgerId:
-                await connection.send_text(message)
+            print(message)
+            print(type(message))
+            await connection.send_text("yo")
+            #await connection.send_text(message)
+            #if connection.path_params['ledgerId'] == ledgerId:
+            #    await connection.send_text(message)
 
 manager = ConnectionManager()
 
@@ -235,22 +238,14 @@ async def heavy_data_processing(data: dict):
 async def websocket_endpoint(websocket: WebSocket):
     # Accept the connection from a client.
     await websocket.accept()
-
-    while True:
-        try:
-            # Receive the JSON data sent by a client.
-            data = await websocket.receive_json()
-            print(data)
-            # Some (fake) heavey data processing logic.
-            message_processed = await heavy_data_processing(data)
-            print("message processed")
-            # Send JSON data to the client.
-            await websocket.send_json(
-                {
-                    "message": message_processed,
-                    "time": datetime.now().strftime("%H:%M:%S"),
-                }
-            )
-        except WebSocketDisconnect:
-            logger.info("The connection is closed.")
-            break
+    
+    # Add the WebSocket connection to the list of active connections
+    manager.active_connections.append(websocket)
+    
+    try:
+        while True:
+            data = await websocket.receive_text()
+            #await manager.broadcast(data)  # Broadcast the received data to all connected clients
+    except WebSocketDisconnect:
+        # Remove the WebSocket connection from the list of active connections
+        manager.active_connections.remove(websocket)
