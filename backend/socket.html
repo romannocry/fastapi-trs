@@ -3,11 +3,11 @@
     let socket = new WebSocket("ws://127.0.0.1:8000/api/v1/transactions/ws");
 
 socket.onopen = function(e) {
-  alert("[open] Connection established");
-  alert("Sending to server");
-  var obj = {name: "Martin", age: 30, country: "United States"};
+  //alert("[open] Connection established");
+  //alert("Sending to server");
+  //var obj = {name: "Martin", age: 30, country: "United States"};
 
-  socket.send(JSON.stringify(obj));
+  //socket.send(JSON.stringify(obj));
 };
 
 socket.onmessage = function(event) {

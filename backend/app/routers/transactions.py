@@ -42,7 +42,7 @@ class ConnectionManager:
         for connection in self.active_connections:
             print(message)
             print(type(message))
-            await connection.send_text("yo")
+            await connection.send_text(json.dumps(message.payload))
             #await connection.send_text(message)
             #if connection.path_params['ledgerId'] == ledgerId:
             #    await connection.send_text(message)
@@ -208,30 +208,6 @@ def validate_transaction(transaction_payload, ledger_payload):
 
     return None
 
-
-#user can get a live feed of the data_stream_id
-@router.websocket("/feed/transactions/{objectModelId}")
-async def websocket_endpoint(websocket: WebSocket, objectModelId: str):
-
-    payload = {}
-    print(websocket)
-    #await manager.connect(websocket)
-    #try:
-    #    while True:
-    #        data = await websocket.receive_text()
-            #manager.broadcast(data)
-            #print(data)
-    #except WebSocketDisconnect:
-    #    manager.disconnect(websocket)
-        #await manager.broadcast(f"Client #{objectModelId} left the chat")
-
-
-async def heavy_data_processing(data: dict):
-    """Some (fake) heavy data processing logic."""
-    #await asyncio.sleep(2)
-    message_processed = data.get("message", "").upper()
-    print(message_processed)
-    return message_processed
 
 # Note that the verb is `websocket` here, not `get`, `post`, etc.
 @router.websocket("/ws")
