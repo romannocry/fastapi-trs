@@ -2,11 +2,13 @@ from typing import List, Optional, Any
 from uuid import UUID
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Body, Depends
+from fastapi import APIRouter, HTTPException, Body, Depends, WebSocket, WebSocketDisconnect
 from pymongo import errors
 from pydantic.networks import EmailStr
 from pydantic import ValidationError
 
+import asyncio
+import logging
 import base64
 import json
 
@@ -18,7 +20,31 @@ from ..auth.auth import (
 from .. import schemas, models
 
 router = APIRouter()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("FastAPI app")
 
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
+
+    async def broadcast(self, message: str, ledgerId: str):
+        print("broadcast")
+        for connection in self.active_connections:
+            print(connection)
+            if connection.path_params['ledgerId'] == ledgerId:
+                await connection.send_text(message)
+
+manager = ConnectionManager()
 
 @router.post("", response_model=schemas.Transaction)
 async def register_transaction(
@@ -26,7 +52,6 @@ async def register_transaction(
     payload: dict = Body(...),
     #user_info: dict = Body(...),
     user_info: models.User = Depends(get_current_active_user)
-
 ):
     """
     Register a new transaction.
@@ -111,6 +136,7 @@ async def update_transaction(
 
     try:
         await transaction.save()
+        await manager.broadcast(transaction,transaction.ledgerUUID)
         return transaction
     except errors.DuplicateKeyError:
         raise HTTPException(
@@ -178,3 +204,53 @@ def validate_transaction(transaction_payload, ledger_payload):
                 print("no data was pushed for key '"+k+"' but it was not mandatory")
 
     return None
+
+
+#user can get a live feed of the data_stream_id
+@router.websocket("/feed/transactions/{objectModelId}")
+async def websocket_endpoint(websocket: WebSocket, objectModelId: str):
+
+    payload = {}
+    print(websocket)
+    #await manager.connect(websocket)
+    #try:
+    #    while True:
+    #        data = await websocket.receive_text()
+            #manager.broadcast(data)
+            #print(data)
+    #except WebSocketDisconnect:
+    #    manager.disconnect(websocket)
+        #await manager.broadcast(f"Client #{objectModelId} left the chat")
+
+
+async def heavy_data_processing(data: dict):
+    """Some (fake) heavy data processing logic."""
+    #await asyncio.sleep(2)
+    message_processed = data.get("message", "").upper()
+    print(message_processed)
+    return message_processed
+
+# Note that the verb is `websocket` here, not `get`, `post`, etc.
+@router.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    # Accept the connection from a client.
+    await websocket.accept()
+
+    while True:
+        try:
+            # Receive the JSON data sent by a client.
+            data = await websocket.receive_json()
+            print(data)
+            # Some (fake) heavey data processing logic.
+            message_processed = await heavy_data_processing(data)
+            print("message processed")
+            # Send JSON data to the client.
+            await websocket.send_json(
+                {
+                    "message": message_processed,
+                    "time": datetime.now().strftime("%H:%M:%S"),
+                }
+            )
+        except WebSocketDisconnect:
+            logger.info("The connection is closed.")
+            break
