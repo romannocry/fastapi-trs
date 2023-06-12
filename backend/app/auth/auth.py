@@ -2,20 +2,44 @@ from datetime import datetime, timedelta
 from uuid import UUID
 from typing import Union, Any
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Security
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
+#
+from fastapi.openapi.models import OAuthFlowImplicit,OAuthFlows
+from fastapi.security import OAuth2, SecurityScopes
+import certifi
+import httpx
+
+
+#
 from .. import models, schemas
 from ..config.config import settings
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 30 minutes
 ALGORITHM = "HS256"
+SG_CONNECT_ENDPOINT = ""
+OAUTH_INTERNAL = True
 
-oauth2_scheme = OAuth2PasswordBearer(
+oauth2_scheme_local = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
 )
+
+oauth2_scheme_external = OAuth2(
+    scheme_name="implicit",
+    flows=OAuthFlows(implicit=OAuthFlowImplicit(
+        authorizationUrl=f"{settings.API_V1_STR}/login/access-token",
+        #authorizationUrl=f"{SG_CONNECT_ENDPOINT}/authorize",
+        scopes={
+            "openid": "Openid scope",
+            "profile": "Profile scope"
+        }
+    ))
+)
+
+oauth2_scheme = oauth2_scheme_local if OAUTH_INTERNAL else oauth2_scheme_external
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -68,6 +92,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return user
 
+async def get_current_user_external(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme_external)) -> str:
+    endpoint = SG_CONNECT_ENDPOINT
+    route = '/userinfo'
+    async with httpx.AsyncClient() as client:#verify=certifi.where()) as client:
+        res = await client.get(endpoint + route,headers={"Auhtorization":token})
+    
+    user_info = res.json()
+    return user_info
 
 def get_current_active_user(
     current_user: models.User = Depends(get_current_user),

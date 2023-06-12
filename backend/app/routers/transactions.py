@@ -42,14 +42,14 @@ class ConnectionManager:
         for connection in self.active_connections:
             print(message)
             print(type(message))
-            await connection.send_text(json.dumps(message.payload))
+            #await connection.send_text(json.dumps(message.payload))
             #await connection.send_text(message)
             #if connection.path_params['ledgerId'] == ledgerId:
             #    await connection.send_text(message)
 
 manager = ConnectionManager()
 
-@router.post("", response_model=schemas.Transaction)
+@router.post("")#, response_model=schemas.Transaction)
 async def register_transaction(
     ledgerUUID: UUID = Body(...),
     payload: dict = Body(...),
@@ -66,9 +66,12 @@ async def register_transaction(
         raise HTTPException(status_code=404, detail="Ledger not found")
     else: 
         validate_transaction(payload,ledger.ledgerSchema)
+        print(user_info.email)
+        
         #if validate_transaction_payload:
         #    return validate_transaction_payload
-        transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"user_info.email":user_info.email})
+
+        transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"created_by":user_info.email})
 
         # if transaction does not exist
         if transaction is None or ledger.allow_multiple:
@@ -77,8 +80,11 @@ async def register_transaction(
                 transaction = models.Transaction(
                     ledgerUUID=ledgerUUID,
                     payload=payload,
-                    user_info={"email":user_info.email},
+                    payload_hist=[payload],
+                    user_info = user_info,
+                    created_by=user_info.email
                 )
+                #print(payload)
             except ValidationError as e:
                 print(e.errors())
                 raise HTTPException(
@@ -99,15 +105,19 @@ async def register_transaction(
             if ledger.allow_change:
                 # if yes, if the date is empty or after the current datetime, we can persist the change
                 if ledger.allow_change_until_date is None or ledger.allow_change_until_date > datetime.now():
+                    print("changing")
                     transaction.payload = payload
+                    transaction.payload_hist.append(payload)
+                    #print(payload)
                     transaction.updated_at = datetime.now()
-                    try:
-                        await transaction.save()
-                        return transaction
-                    except Exception as e: 
-                        raise HTTPException(
-                            status_code=400, detail=e
-                        )
+                    #try:
+                    await transaction.save()
+                    print(transaction)
+                    return transaction
+                    #except Exception as e: 
+                    #    raise HTTPException(
+                    #        status_code=400, detail=e
+                    #    )
                 else:
                     raise HTTPException(
                         status_code=400, detail="transaction exists but cannot be changed anymore"
@@ -115,7 +125,7 @@ async def register_transaction(
             else:
                 raise HTTPException(
                     status_code=400, detail="Changing is not allowed"
-                ) 
+                )
 
 
 @router.patch("/{transactionid}", response_model=schemas.Transaction)
@@ -134,9 +144,23 @@ async def update_transaction(
         the update data
 
     """
-    transaction = await models.Transaction.find_one({"uuid": transactionid})
-    transaction = transaction.copy(update=update.dict(exclude_unset=True))
-
+    try:
+        transaction = await models.Transaction.find_one({"uuid": transactionid})
+        if transaction is None:
+            print("transaction not found")
+            raise HTTPException(
+                status_code=400, detail="transaction does not exist"
+            )
+        else:
+            ledger = await models.Ledger.find_one({"uuid": transaction.ledgerUUID})
+            validate_transaction(update.payload,ledger.ledgerSchema)
+            transaction = transaction.copy(update=update.dict(exclude_unset=True))
+            transaction.payload_hist.append(update.payload)
+    except Exception as e: 
+        raise HTTPException(
+            status_code=400, detail="error"
+        )
+            
     try:
         await transaction.save()
         await manager.broadcast(transaction,transaction.ledgerUUID)
@@ -169,33 +193,33 @@ def validate_transaction(transaction_payload, ledger_payload):
         if k in transaction_payload.keys():
             #if the model attribute is a list, use "in"
             if 'enum' in v.keys() and (isinstance(transaction_payload[k],int) or isinstance(transaction_payload[k],str)):
-                print("is enum")
+                #print("is enum")
                 if transaction_payload[k] in v['enum'] or not v['enum']:
-                    print("payload "+ str(transaction_payload[k]) + " authorized in model")
+                #    print("payload "+ str(transaction_payload[k]) + " authorized in model")
                     payload[k] = transaction_payload[k]
                 else: 
-                    print("payload "+ str(transaction_payload[k]) + " NOT authorized in model, values expected in: "+str(v['enum'])+", value received:"+str(transaction_payload[k])+" of type:"+str(type(transaction_payload[k])))
+                #    print("payload "+ str(transaction_payload[k]) + " NOT authorized in model, values expected in: "+str(v['enum'])+", value received:"+str(transaction_payload[k])+" of type:"+str(type(transaction_payload[k])))
                     raise HTTPException(status_code=400, detail="invalid payload, values expected in: "+str(v['enum'])+", value received:"+str(transaction_payload[k])+" of type:"+str(type(transaction_payload[k])))
            #if not a list, then it is an open type *integer* *datetime*
             elif 'items' in v.keys():
-                print("is multi item")
+                #print("is multi item")
                 data = []
                 for item in transaction_payload[k]:
                     lookup = any(x['const'] == item for x in v['items']['oneOf'])
                     if lookup:
-                        print("payload "+ str(item)+" authorized in model")
+                #        print("payload "+ str(item)+" authorized in model")
                         data.append(item)
                     else:
-                        print("payload "+ str(item) + " NOT authorized in model, values expected in: "+str(v['items']['oneOf'])+", value received:"+str(item)+" of type:"+str(type(item)))
+                #        print("payload "+ str(item) + " NOT authorized in model, values expected in: "+str(v['items']['oneOf'])+", value received:"+str(item)+" of type:"+str(type(item)))
                         raise HTTPException(status_code=400, detail="invalid payload, values expected in: "+str(v['items']['oneOf'])+", value received:"+str(item)+" of type:"+str(type(item)))
                 payload[k] = data
             else:
-                print("is not enum")
+                #print("is not enum")
                 if isinstance(transaction_payload[k],eval(v['type'][0:3])):
-                    print("payload "+ str(transaction_payload[k]) + " authorized in model")
+                #    print("payload "+ str(transaction_payload[k]) + " authorized in model")
                     payload[k] = transaction_payload[k]    
                 else: 
-                    print("payload "+ str(transaction_payload[k]) + " NOT authorized in model, type expected: "+str(v['type'])+", type received:"+str(type(payloadModel[k])))
+                #    print("payload "+ str(transaction_payload[k]) + " NOT authorized in model, type expected: "+str(v['type'])+", type received:"+str(type(payloadModel[k])))
                     raise HTTPException(status_code=400, detail="invalid payload, type expected:"+str(v['type'])+", type received:"+str(type(payloadModel[k])))
             ## NEED TO HANDLE MULTI ENUM ##
         else: #k in required_keys:

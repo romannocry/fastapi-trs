@@ -39,3 +39,8 @@ pytest-cov = "^4.0.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = 'private'
+url = 'https://cdp-artifactory.fr.world./artifactory/api/pypi/pypi-python-release/simple/'
+default = false

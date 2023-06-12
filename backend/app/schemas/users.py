@@ -35,7 +35,6 @@ class UserInDBBase(UserBase):
 class User(UserInDBBase):
     uuid: UUID
 
-
 # Additional properties stored in DB
 class UserInDB(UserInDBBase):
     hashed_password: str

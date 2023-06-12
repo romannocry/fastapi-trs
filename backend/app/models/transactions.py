@@ -1,15 +1,18 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, EmailStr, Field, validator
 from beanie import Document, Indexed
 from datetime import datetime
 from uuid import UUID, uuid4
 from .. import schemas, models
 
+
 class Transaction(Document):
     uuid: Indexed(UUID, unique=True) = Field(default_factory=uuid4)
     ledgerUUID: UUID
     payload: dict
-    user_info: dict 
+    payload_hist: List = Field(default=list)
+    created_by: EmailStr
+    #user_info: dict 
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 """

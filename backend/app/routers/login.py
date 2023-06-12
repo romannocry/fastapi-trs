@@ -15,6 +15,7 @@ async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -
     """
     OAuth2 compatible token login, get an access token for future requests
     """
+    print("access token login")
     user = await authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
