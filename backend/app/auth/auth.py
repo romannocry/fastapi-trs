@@ -73,7 +73,7 @@ def create_access_token(
     return encoded_jwt
 
 
-async def get_current_user_internal(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -92,7 +92,7 @@ async def get_current_user_internal(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return user
 
-async def get_current_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme_external)) -> str:
+async def get_current_user_ext(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme_external)) -> str:
     try:
         endpoint = SG_CONNECT_ENDPOINT
         route = '/userinfo'
@@ -105,6 +105,7 @@ async def get_current_user(security_scopes: SecurityScopes, token: str = Depends
                 user = models.User(
                     email=user_info.get('mail'),
                     team=user_info.get('rc_sigle'),
+                    uuid=user_info.get('contact_id')
                 )
         else:
             raise HTTPException(status_code=400, detail=user_info)
