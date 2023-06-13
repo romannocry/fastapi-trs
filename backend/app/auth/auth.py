@@ -73,7 +73,7 @@ def create_access_token(
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user_internal(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -92,14 +92,26 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return user
 
-async def get_current_user_external(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme_external)) -> str:
-    endpoint = SG_CONNECT_ENDPOINT
-    route = '/userinfo'
-    async with httpx.AsyncClient() as client:#verify=certifi.where()) as client:
-        res = await client.get(endpoint + route,headers={"Auhtorization":token})
+async def get_current_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme_external)) -> str:
+    try:
+        endpoint = SG_CONNECT_ENDPOINT
+        route = '/userinfo'
+        async with httpx.AsyncClient() as client:#verify=certifi.where()) as client:
+            res = await client.get(endpoint + route,headers={"Authorization":token})
+        user_info = res.json()
+        if 'email' in user_info:
+            user = await models.User.find_one({"email": user_info['email']})
+            if user is None:
+                user = models.User(
+                    email=user_info.get('mail'),
+                    team=user_info.get('rc_sigle'),
+                )
+        else:
+            raise HTTPException(status_code=400, detail=user_info)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=e)
     
-    user_info = res.json()
-    return user_info
+    return user
 
 def get_current_active_user(
     current_user: models.User = Depends(get_current_user),
