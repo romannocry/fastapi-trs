@@ -7,6 +7,8 @@ from pymongo import errors
 from pydantic.networks import EmailStr
 from pydantic import ValidationError
 
+from jsonschema import validate
+
 import asyncio
 import logging
 import base64
@@ -66,7 +68,95 @@ async def register_transaction(
         raise HTTPException(status_code=404, detail="Ledger not found")
     else: 
         validate_transaction(payload,ledger.ledgerSchema)
-        print(user_info.email)
+        print(user_info.get('email'))
+        
+        #if validate_transaction_payload:
+        #    return validate_transaction_payload
+
+        transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"created_by":user_info.email})
+
+        # if transaction does not exist
+        if transaction is None or ledger.allow_multiple:
+            print("no transactions exist - ok to persist")
+            try:
+                transaction = models.Transaction(
+                    ledgerUUID=ledgerUUID,
+                    payload=payload,
+                    payload_hist=[payload],
+                    user_info = user_info,
+                    created_by=user_info.email
+                )
+                #print(payload)
+            except ValidationError as e:
+                print(e.errors())
+                raise HTTPException(
+                    status_code=400, detail=e.errors()
+                ) 
+            
+            try:
+                await transaction.create()
+                return transaction
+            #except errors.DuplicateKeyError:
+            except Exception as e: 
+                raise HTTPException(
+                    status_code=400, detail=e
+                )
+        else:
+            # allow change?
+            print("going else")
+            if ledger.allow_change:
+                # if yes, if the date is empty or after the current datetime, we can persist the change
+                if ledger.allow_change_until_date is None or ledger.allow_change_until_date > datetime.now():
+                    print("changing")
+                    transaction.payload = payload
+                    transaction.payload_hist.append(payload)
+                    #print(payload)
+                    transaction.updated_at = datetime.now()
+                    #try:
+                    await transaction.save()
+                    print(transaction)
+                    return transaction
+                    #except Exception as e: 
+                    #    raise HTTPException(
+                    #        status_code=400, detail=e
+                    #    )
+                else:
+                    raise HTTPException(
+                        status_code=400, detail="transaction exists but cannot be changed anymore"
+                    ) 
+            else:
+                raise HTTPException(
+                    status_code=400, detail="Changing is not allowed"
+                )
+
+@router.post("/{ledgerUUID}/{base64_payload}")#, response_model=schemas.Transaction)
+async def register_transaction_encoded(
+    ledgerUUID: UUID,
+    base64_payload: str,
+    #user_info: dict = Body(...),
+    user_info: models.User = Depends(get_current_active_user)
+):
+    """
+    Register a new transaction.
+    """
+
+    # Check if ledger exists:
+    ledger = await models.Ledger.find_one({"uuid": ledgerUUID})
+    if ledger is None:
+        raise HTTPException(status_code=404, detail="Ledger not found")
+    else: 
+        try:
+            print(base64_payload)
+            payload = base64.b64decode(base64_payload)
+            print(payload)
+            print(type(payload))
+            payload = json.loads(payload)
+            print(type(payload))
+        except Exception as e:
+            raise HTTPException(status_code=400,detail="AH!"+str(e))
+        
+        validate_transaction(payload,ledger.ledgerSchema)
+        print(user_info.get('email'))
         
         #if validate_transaction_payload:
         #    return validate_transaction_payload
@@ -171,7 +261,17 @@ async def update_transaction(
         )
 
 
-def validate_transaction(transaction_payload, ledger_payload):
+def validate_transaction(transaction_payload,ledger_schema):
+        try:
+            payload = transaction_payload
+            validate(instance=transaction_payload,schema=ledger_schema)
+            return True
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,detail="OH!"+str(e)
+            )
+
+def validate_transaction_OLD(transaction_payload, ledger_payload):
     #print(transaction_payload)
     #print(ledger_payload)
     #print(ledger_payload['required'])
@@ -223,12 +323,14 @@ def validate_transaction(transaction_payload, ledger_payload):
                     raise HTTPException(status_code=400, detail="invalid payload, type expected:"+str(v['type'])+", type received:"+str(type(payloadModel[k])))
             ## NEED TO HANDLE MULTI ENUM ##
         else: #k in required_keys:
+            print(k)
             if (k in ledger_payload['required']):
             #should be able to push a subset of the data
                 print("no data was pushed for required key '"+k+"'. Please review your payload")
                 raise HTTPException(status_code=400, detail="missing value for required field: '"+str(k)+"' of type "+str(v['type']))
             else:
                 print("no data was pushed for key '"+k+"' but it was not mandatory")
+
 
     return None
 
@@ -249,3 +351,13 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         # Remove the WebSocket connection from the list of active connections
         manager.active_connections.remove(websocket)
+
+
+
+
+
+
+
+
+
+

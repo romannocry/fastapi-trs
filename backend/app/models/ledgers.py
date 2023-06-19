@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, EmailStr, Field, validator
 from beanie import Document, Indexed
 from datetime import datetime
@@ -15,6 +15,9 @@ class Ledger(Document):
     allow_multiple: Optional[bool] = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_by: EmailStr
+    updated_by: EmailStr
+    access_rights: List = Field(default=list)
 
     @validator('allow_change')
     def allow_change_xor_multiple(cls, v, values):
@@ -29,7 +32,10 @@ class Ledger(Document):
         if v and values.get('allow_change', False):
             raise ValueError('allow_mutiple and allow_change cannot both be true')
         return v
-    
+
+    #class Config:
+        #allow_mutation = False
+        
     # If we leave date blank, considers that it is until the end.
     #@validator('allow_change_until_date', always=True)
     #def validate_allow_change_until_date(cls, value, values):

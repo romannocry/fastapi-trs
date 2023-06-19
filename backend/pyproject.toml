@@ -24,6 +24,7 @@ bcrypt = "^4.0.1"
 beanie = "^1.17.0"
 python-dotenv = "^0.21.1"
 websockets = "^11.0.3"
+jsonschema = "^4.17.3"
 
 [tool.poetry.group.dev]
 optional = true
@@ -40,7 +41,3 @@ pytest-cov = "^4.0.0"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[[tool.poetry.source]]
-name = 'private'
-url = 'https://cdp-artifactory.fr.world./artifactory/api/pypi/pypi-python-release/simple/'
-default = false

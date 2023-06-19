@@ -54,7 +54,7 @@ export default function Home() {
                 // height: 233,
                 width: 250,
               }}
-              alt='MongoDB'
+              alt='MongoDB!!'
               src='mongodb.png'
             />
           </Link>

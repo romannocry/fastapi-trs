@@ -10,5 +10,5 @@ api_router.include_router(transactions.router, prefix="/transactions", tags=["tr
 
 
 @api_router.get("/")
-async def root():
-    return {"message": "Backend API for FARM-docker operational !"}
+async def health():
+    return {"message": "Backend API works well !"}
