@@ -43,12 +43,13 @@ class ConnectionManager:
     async def broadcast(self, message: str, ledgerUUID: str):
         print("broadcast")
         for connection in self.active_connections:
-
+            conn = connection.get('ws')
+            #print(connection.get('ws'))
             #await connection.send_text(json.dumps(message.payload))
             #await connection.send_text(message)
-            if connection.path_params['ledgerUUID'] == str(ledgerUUID):
+            if conn.path_params['ledgerUUID'] == str(ledgerUUID):
                 print("ready to broadcast")
-                await connection.send_text(str(message))
+                await conn.send_text(str(message))
 
 manager = ConnectionManager()
 
@@ -276,12 +277,9 @@ def validate_transaction(transaction_payload,ledger_schema):
 
 # Note that the verb is `websocket` here, not `get`, `post`, etc.
 @router.websocket("/ws/{ledgerUUID}")
-async def websocket_endpoint(websocket: WebSocket):#,user_info: models.User = Depends(get_current_active_user)):
+async def websocket_endpoint(websocket: WebSocket,ledgerUUID: UUID):#,user_info: models.User = Depends(get_current_active_user)):
     # Accept the connection from a client.
     await websocket.accept()
-    
-    # Add the WebSocket connection to the list of active connections
-    #manager.active_connections.append(websocket)
     
     try:
         while True:
@@ -295,8 +293,25 @@ async def websocket_endpoint(websocket: WebSocket):#,user_info: models.User = De
                 print("authentication to the websocket failed")
             else:
                 print("autentication succeeded")
-                # Add the WebSocket connection to the list of active connections
-                manager.active_connections.append({"ws":websocket,"user":authenticated.email})
+                # check if the user has access to the actual ledger
+                ledger = await models.Ledger.find_one({
+                    "uuid": ledgerUUID,
+                    "access_rights":{
+                    "$elemMatch": {  
+                        "email":authenticated.email,
+                    }
+                    }
+                    })
+                if ledger is None:
+                    print("access rights not enough")
+                    await websocket.send_text(json.dumps({"status_code:":403,"detail":"Credentials too low"}))
+                    #raise HTTPException(status_code=403, detail="Connection denied")
+                    #raise HTTPException(status_code=404, detail="ledger not found or you do not have access to the ledger")
+                else:
+                    # Add the WebSocket connection to the list of active connections
+                    print("access rights ok")
+                    manager.active_connections.append({"ws":websocket,"user":authenticated.email})
+
             #await manager.broadcast(data)  # Broadcast the received data to all connected clients
     except WebSocketDisconnect:
 
