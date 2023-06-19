@@ -18,6 +18,7 @@ from ..auth.auth import (
     get_hashed_password,
     get_current_active_superuser,
     get_current_active_user,
+    get_current_user,
 )
 from .. import schemas, models
 
@@ -39,15 +40,15 @@ class ConnectionManager:
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
 
-    async def broadcast(self, message: str, ledgerId: str):
+    async def broadcast(self, message: str, ledgerUUID: str):
         print("broadcast")
         for connection in self.active_connections:
-            print(message)
-            print(type(message))
+
             #await connection.send_text(json.dumps(message.payload))
             #await connection.send_text(message)
-            #if connection.path_params['ledgerId'] == ledgerId:
-            #    await connection.send_text(message)
+            if connection.path_params['ledgerUUID'] == str(ledgerUUID):
+                print("ready to broadcast")
+                await connection.send_text(str(message))
 
 manager = ConnectionManager()
 
@@ -114,7 +115,7 @@ async def register_transaction(
                     transaction.updated_at = datetime.now()
                     #try:
                     await transaction.save()
-                    print(transaction)
+                    #print(transaction)
                     return transaction
                     #except Exception as e: 
                     #    raise HTTPException(
@@ -183,6 +184,7 @@ async def register_transaction_encoded(
             
             try:
                 await transaction.create()
+                await manager.broadcast(transaction,transaction.ledgerUUID)
                 return transaction
             #except errors.DuplicateKeyError:
             except Exception as e: 
@@ -202,7 +204,7 @@ async def register_transaction_encoded(
                     transaction.updated_at = datetime.now()
                     #try:
                     await transaction.save()
-                    print(transaction)
+                    await manager.broadcast(transaction,transaction.ledgerUUID)
                     return transaction
                     #except Exception as e: 
                     #    raise HTTPException(
@@ -271,88 +273,42 @@ def validate_transaction(transaction_payload,ledger_schema):
                 status_code=400,detail="OH!"+str(e)
             )
 
-def validate_transaction_OLD(transaction_payload, ledger_payload):
-    #print(transaction_payload)
-    #print(ledger_payload)
-    #print(ledger_payload['required'])
-
-    #to activate for the UI
-    #try:    
-    #    transaction_payload_base64_decode = base64.b64decode(transaction_payload)
-    #    transaction_payload_to_dict = json.loads(transaction_payload_base64_decode)
-    #except Exception as e: 
-    #    raise HTTPException(
-    #        status_code=422, detail="payload is not valid"
-    #    )
-    
-    payload = {}
-    for k,v in ledger_payload['properties'].items():
-        print(k, '->', v)
-        #if key exists in the payload - check that the value is authorized
-        print(k in transaction_payload.keys())
-        if k in transaction_payload.keys():
-            #if the model attribute is a list, use "in"
-            if 'enum' in v.keys() and (isinstance(transaction_payload[k],int) or isinstance(transaction_payload[k],str)):
-                #print("is enum")
-                if transaction_payload[k] in v['enum'] or not v['enum']:
-                #    print("payload "+ str(transaction_payload[k]) + " authorized in model")
-                    payload[k] = transaction_payload[k]
-                else: 
-                #    print("payload "+ str(transaction_payload[k]) + " NOT authorized in model, values expected in: "+str(v['enum'])+", value received:"+str(transaction_payload[k])+" of type:"+str(type(transaction_payload[k])))
-                    raise HTTPException(status_code=400, detail="invalid payload, values expected in: "+str(v['enum'])+", value received:"+str(transaction_payload[k])+" of type:"+str(type(transaction_payload[k])))
-           #if not a list, then it is an open type *integer* *datetime*
-            elif 'items' in v.keys():
-                #print("is multi item")
-                data = []
-                for item in transaction_payload[k]:
-                    lookup = any(x['const'] == item for x in v['items']['oneOf'])
-                    if lookup:
-                #        print("payload "+ str(item)+" authorized in model")
-                        data.append(item)
-                    else:
-                #        print("payload "+ str(item) + " NOT authorized in model, values expected in: "+str(v['items']['oneOf'])+", value received:"+str(item)+" of type:"+str(type(item)))
-                        raise HTTPException(status_code=400, detail="invalid payload, values expected in: "+str(v['items']['oneOf'])+", value received:"+str(item)+" of type:"+str(type(item)))
-                payload[k] = data
-            else:
-                #print("is not enum")
-                if isinstance(transaction_payload[k],eval(v['type'][0:3])):
-                #    print("payload "+ str(transaction_payload[k]) + " authorized in model")
-                    payload[k] = transaction_payload[k]    
-                else: 
-                #    print("payload "+ str(transaction_payload[k]) + " NOT authorized in model, type expected: "+str(v['type'])+", type received:"+str(type(payloadModel[k])))
-                    raise HTTPException(status_code=400, detail="invalid payload, type expected:"+str(v['type'])+", type received:"+str(type(payloadModel[k])))
-            ## NEED TO HANDLE MULTI ENUM ##
-        else: #k in required_keys:
-            print(k)
-            if (k in ledger_payload['required']):
-            #should be able to push a subset of the data
-                print("no data was pushed for required key '"+k+"'. Please review your payload")
-                raise HTTPException(status_code=400, detail="missing value for required field: '"+str(k)+"' of type "+str(v['type']))
-            else:
-                print("no data was pushed for key '"+k+"' but it was not mandatory")
-
-
-    return None
-
 
 # Note that the verb is `websocket` here, not `get`, `post`, etc.
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+@router.websocket("/ws/{ledgerUUID}")
+async def websocket_endpoint(websocket: WebSocket):#,user_info: models.User = Depends(get_current_active_user)):
     # Accept the connection from a client.
     await websocket.accept()
     
     # Add the WebSocket connection to the list of active connections
-    manager.active_connections.append(websocket)
+    #manager.active_connections.append(websocket)
     
     try:
         while True:
             data = await websocket.receive_text()
+            payload = json.loads(data)
+            print(payload['token'])
+            #print(type(data))
+            #print(json.loads(data))
+            authenticated = await get_current_user(payload['token'])
+            if authenticated is None:
+                print("authentication to the websocket failed")
+            else:
+                print("autentication succeeded")
+                # Add the WebSocket connection to the list of active connections
+                manager.active_connections.append({"ws":websocket,"user":authenticated.email})
             #await manager.broadcast(data)  # Broadcast the received data to all connected clients
     except WebSocketDisconnect:
+
+        # Remove the WebSocket connection using list comprehension
+        #ws_to_remove = [conn for conn in manager.active_connections if conn["ws"] == websocket]
+        ws_to_remove = [index for index, conn in enumerate(manager.active_connections) if conn["ws"] == websocket]
+
+        print(ws_to_remove[0])
         # Remove the WebSocket connection from the list of active connections
-        manager.active_connections.remove(websocket)
-
-
+        #print(manager.active_connections)
+        #print(ws_to_remove[0] in manager.active_connections)
+        manager.active_connections.pop(ws_to_remove[0])
 
 
 

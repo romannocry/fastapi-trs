@@ -1,8 +1,12 @@
 <script>
-
-    let socket = new WebSocket("ws://127.0.0.1:8000/api/v1/transactions/ws");
+const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2ODc4OTU0ODMsInN1YiI6IjdkZmFhMTY5LWMxNzQtNDNiZi1hZDM5LThkMTdjYzlmMDMxNSJ9.8TwjAaEfsvITkGhHifVhx6DsINbQMaBdYgkSiEXWZYE';
+let socket = new WebSocket("ws://127.0.0.1:8000/api/v1/transactions/ws/3272e47b-96c7-429f-87a6-77079050bb0f");
 
 socket.onopen = function(e) {
+  const authenticationRequest = {
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2ODc4OTU0ODMsInN1YiI6IjdkZmFhMTY5LWMxNzQtNDNiZi1hZDM5LThkMTdjYzlmMDMxNSJ9.8TwjAaEfsvITkGhHifVhx6DsINbQMaBdYgkSiEXWZYE',
+  };
+  socket.send(JSON.stringify(authenticationRequest));
   //alert("[open] Connection established");
   //alert("Sending to server");
   //var obj = {name: "Martin", age: 30, country: "United States"};

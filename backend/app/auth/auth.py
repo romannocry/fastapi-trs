@@ -79,6 +79,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
         userid: UUID = payload.get("sub")
@@ -88,6 +89,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     except JWTError:
         raise credentials_exception
     user = await models.User.find_one({"uuid": token_data.uuid})
+    print(user)
     if user is None:
         raise credentials_exception
     return user
@@ -117,6 +119,7 @@ async def get_current_user_ext(security_scopes: SecurityScopes, token: str = Dep
 def get_current_active_user(
     current_user: models.User = Depends(get_current_user),
 ) -> models.User:
+    print("get current active user")
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
