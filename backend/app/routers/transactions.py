@@ -53,6 +53,34 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+@router.get("/{ledgerUUID}", response_model=List[schemas.Transaction])
+async def get_transactions(
+    ledgerUUID: UUID,
+    limit: Optional[int] = 10,
+    offset: Optional[int] = 0,
+    user_info: models.User = Depends(get_current_active_user),
+    #admin_user: models.User = Depends(get_current_active_superuser),
+):
+
+    #first we check that the ledger is accessible
+    ledger = await models.Ledger.find_one({
+        "uuid": ledgerUUID,
+        "access_rights":{
+          "$elemMatch": {  
+              "email":user_info.email,
+              #"profile":{ "$in": ["admin", "write","ee"] }
+          }
+        }
+        })
+    
+    if ledger is None:
+        raise HTTPException(status_code=404, detail="cannot get transactions since the ledger is not found or you do not have access to it")
+
+    transactions = await models.Transaction.find({
+        "ledgerUUID": ledgerUUID,
+        }).skip(offset).limit(limit).to_list()
+    return transactions
+
 @router.post("")#, response_model=schemas.Transaction)
 async def register_transaction(
     ledgerUUID: UUID = Body(...),

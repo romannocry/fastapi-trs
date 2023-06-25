@@ -22,9 +22,10 @@ async def register_ledger(
     name: str = Body(...),
     description: str = Body(...),
     ledgerSchema: dict = Body(...),
-    allow_change: bool = Body(...),
+    group: str = Body('My Ledgers'),
+    allow_change: bool = Body(True),
     allow_change_until_date: datetime = Body(None),
-    allow_multiple: bool = Body(...),
+    allow_multiple: bool = Body(False),
     user_info: models.User = Depends(get_current_active_user)
 
 ):
@@ -36,17 +37,18 @@ async def register_ledger(
             name=name,
             description=description,
             ledgerSchema=ledgerSchema,
+            group=group,
             allow_change=allow_change,
             allow_change_until_date=allow_change_until_date,
             allow_multiple=allow_multiple,
             created_by=user_info.email,
             updated_by=user_info.email,
-            access_rights=[{"email":user_info.email,"profile":"admin"}]
+            access_rights=[{"email":user_info.email,"profile":"admin"}],
+            triggers = []
         )
     except ValidationError as e:
-        print(e.errors())
         raise HTTPException(
-            status_code=400, detail=e.errors()
+            status_code=400, detail=str(e)
         ) 
     
     try:
@@ -55,7 +57,7 @@ async def register_ledger(
     #except errors.DuplicateKeyError:
     except Exception as e: 
         raise HTTPException(
-            status_code=400, detail=e
+            status_code=400, detail=str(e)
         )
 
 
@@ -140,6 +142,14 @@ async def update_ledger(
         })
     if ledger is None:
         raise HTTPException(status_code=404, detail="ledger not found or you do not have sufficient access to the ledger to patch")
+    
+    # Perform constraint check
+    if update.allow_change and ledger.allow_multiple:
+        raise HTTPException(status_code=400, detail="allow_change and allow_multiple cannot be True at the same time")
+    if update.allow_multiple and ledger.allow_change:
+        raise HTTPException(status_code=400, detail="allow_change and allow_multiple cannot be True at the same time")
+
+    
     #if update.password is not None:
     #    update.password = get_hashed_password(update.password)
     ledger = ledger.copy(update=update.dict(exclude_unset=True))
