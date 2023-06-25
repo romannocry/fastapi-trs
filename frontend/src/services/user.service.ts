@@ -6,6 +6,7 @@ const API_URL = import.meta.env.VITE_BACKEND_API_URL
 class UserService {
   async getProfile(): User {
     const response = await axios.get(API_URL + 'users/me')
+    console.log("get profile")
     return response.data
   }
 

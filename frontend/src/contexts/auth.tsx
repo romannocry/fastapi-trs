@@ -30,8 +30,10 @@ const AuthProvider: FC<AuthContextProviderProps> = ({ children }) => {
   // Check if there is a currently active session
   // when the provider is mounted for the first time.
   useEffect(() => {
+    print("fetching user profile")
     async function fetchUserProfile() {
       try {
+        print("fetching user profile")
         const user = await userService.getProfile()
         setUser(user)
       } catch (error) {
@@ -43,6 +45,7 @@ const AuthProvider: FC<AuthContextProviderProps> = ({ children }) => {
 
   const login = async (data: FormData) => {
     await authService.login(data)
+    console.log("login fetch profile")
     const user = await userService.getProfile()
     setUser(user)
   }

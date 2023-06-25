@@ -23,6 +23,10 @@ export default function UserProfile(props: UserProfileProps) {
   const { showSnackBar } = useSnackBar()
 
   useEffect(() => {
+    console.log("use effect")
+    console.log(userProfile)
+    console.log("current user")
+    console.log(currentUser)
     reset(userProfile)
   }, [userProfile])
 

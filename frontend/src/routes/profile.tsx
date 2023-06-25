@@ -3,6 +3,7 @@ import UserProfile from '../components/UserProfile'
 import { useAuth } from '../contexts/auth'
 
 export function Profile() {
+  console.log("use auth")
   const { user } = useAuth()
   return (
     <Container maxWidth='lg' sx={{ mt: 4, mb: 4 }}>
