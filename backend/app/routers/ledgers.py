@@ -82,7 +82,7 @@ async def get_ledgers(
 @router.get("/{ledgerid}", response_model=schemas.Ledger)
 async def get_ledger(
     ledgerid: UUID, 
-    user_info: models.User = Depends(get_current_active_user)
+    #user_info: models.User = Depends(get_current_active_user)
 ):
     """
     Get Ledger Info
@@ -101,7 +101,7 @@ async def get_ledger(
         "uuid": ledgerid,
         "access_rights":{
           "$elemMatch": {  
-              "email":user_info.email,
+              #"email":user_info.email,
               #"profile":{ "$in": ["admin", "write","ee"] }
           }
         }
