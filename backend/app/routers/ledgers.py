@@ -15,7 +15,10 @@ from ..auth.auth import (
 from .. import schemas, models
 
 router = APIRouter()
-
+#ledger types:
+    #form generation - basic
+    #url redirect -- isn t it a trigger??
+    #
 
 @router.post("", response_model=schemas.LedgerCreate)
 async def register_ledger(
@@ -144,25 +147,26 @@ async def update_ledger(
         raise HTTPException(status_code=404, detail="ledger not found or you do not have sufficient access to the ledger to patch")
     
     # Perform constraint check
-    if update.allow_change and ledger.allow_multiple:
-        raise HTTPException(status_code=400, detail="allow_change and allow_multiple cannot be True at the same time")
-    if update.allow_multiple and ledger.allow_change:
-        raise HTTPException(status_code=400, detail="allow_change and allow_multiple cannot be True at the same time")
+    if update.allow_change == update.allow_multiple == True:
+        raise HTTPException(status_code=400, detail="allow_change and allow_multiple cannot be both True")
+    elif update.allow_change == ledger.allow_multiple == True and update.allow_multiple is None:
+        raise HTTPException(status_code=400, detail="allow_change and allow_multiple cannot be both True")
+    elif update.allow_multiple == ledger.allow_change == True and update.allow_change is None:
+        raise HTTPException(status_code=400, detail="allow_change and allow_multiple cannot be both True")
 
-    
     #if update.password is not None:
     #    update.password = get_hashed_password(update.password)
     ledger = ledger.copy(update=update.dict(exclude_unset=True))
     ledger.updated_at = datetime.now()
-    print("ledger")
-    print(ledger)
-    print("ledger update")
-    print(update)
+    #print("ledger")
+    #print(ledger)
+    #print("ledger update")
+    #print(update)
 
     try:
         await ledger.save()
         return ledger
-    except errors.DuplicateKeyError:
-        raise HTTPException(
-            status_code=400, detail="Ledger with that email already exists."
-        )
+    except Exception as e: 
+            raise HTTPException(
+                status_code=400, detail=str(e)
+            )
