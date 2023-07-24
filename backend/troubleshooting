@@ -1,0 +1,5 @@
+/System/Volumes/Data/opt/homebrew/etc/mongod.conf
+/opt/homebrew/etc/mongod.conf
+
+sudo find / -name mongod.conf 2>/dev/null
+sudo find / -name mongodb-27017.sock’ 2>/dev/null

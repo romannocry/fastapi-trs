@@ -1,9 +1,22 @@
 from typing import Optional, List
 from pydantic import BaseModel, EmailStr, Field, validator, Extra
 from beanie import Document, Indexed
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import UUID, uuid4
+from pytz import timezone
+import pytz
 
+# Define the Eastern Time zone
+
+# Custom default factory function to get the current time in Eastern Time
+# does not work as mongo is saving all the dates in UTC
+def get_current_time_eastern():
+    # giving the timezone to which it is to be converted
+    eastern = pytz.timezone('Asia/Kolkata')
+    # Getting the current time in EST Time Zone
+    datetime_object = datetime.now(eastern)
+    print(datetime_object)
+    return datetime_object
 
 class Ledger(Document):
     uuid: Indexed(UUID, unique=True) = Field(default_factory=uuid4)

@@ -152,7 +152,7 @@ async def register_transaction(
                     #    )
                 else:
                     raise HTTPException(
-                        status_code=400, detail="transaction exists but cannot be changed anymore"
+                        status_code=400, detail="transaction exists but could only be changed until "+str(ledger.allow_change_until_date)
                     ) 
             else:
                 raise HTTPException(
@@ -241,7 +241,7 @@ async def register_transaction_encoded(
                     #    )
                 else:
                     raise HTTPException(
-                        status_code=400, detail="transaction exists but cannot be changed anymore"
+                        status_code=400, detail="transaction exists but could only be changed until "+str(ledger.allow_change_until_date)
                     ) 
             else:
                 raise HTTPException(

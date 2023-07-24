@@ -25,6 +25,7 @@ beanie = "^1.17.0"
 python-dotenv = "^0.21.1"
 websockets = "^11.0.3"
 jsonschema = "^4.17.3"
+pytz = "^2023.3"
 
 [tool.poetry.group.dev]
 optional = true

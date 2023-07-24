@@ -1,0 +1,95 @@
+{
+    "_id": {
+      "$oid": "64bc32adb44d05fab73fafbe"
+    },
+    "uuid": {
+      "$binary": {
+        "base64": "d6yIkfOKSUq/CJ8IaC2Cog==",
+        "subType": "04"
+      }
+    },
+    "name": "string",
+    "description": "string",
+    "ledgerSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 3,
+          "description": "Please enter your name"
+        },
+        "vegetarian": {
+          "type": "boolean"
+        },
+        "birthDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "nationality": {
+          "type": "string",
+          "enum": [
+            "DE",
+            "IT",
+            "JP",
+            "US",
+            "RU",
+            "Other"
+          ]
+        },
+        "personalData": {
+          "type": "object",
+          "properties": {
+            "age": {
+              "type": "integer",
+              "description": "Please enter your age."
+            },
+            "height": {
+              "type": "number"
+            },
+            "drivingSkill": {
+              "type": "number",
+              "maximum": 10,
+              "minimum": 1,
+              "default": 7
+            }
+          },
+          "required": [
+            "age",
+            "height"
+          ]
+        },
+        "occupation": {
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string",
+          "maxLength": 5
+        }
+      },
+      "required": [
+        "occupation",
+        "nationality"
+      ]
+    },
+    "allow_change": true,
+    "allow_change_until_date": {
+      "$date": "2023-07-22T15:06:05.732Z"
+    },
+    "allow_multiple": false,
+    "created_at": {
+      "$date": "2023-07-22T19:49:01.431Z"
+    },
+    "updated_at": {
+      "$date": "2023-07-22T19:49:01.431Z"
+    },
+    "created_by": "roman.medioni@sgcib.com",
+    "updated_by": "roman.medioni@sgcib.com",
+    "access_rights": [
+      {
+        "email": "roman.medioni@sgcib.com",
+        "profile": "admin"
+      }
+    ],
+    "triggers": [],
+    "group": "string"
+  }
