@@ -17,7 +17,7 @@ Transaction:
         - full input via url
         - partial input - full input via form submit
 - Gamification: Transaction can generate points/tokens
-
+- but we should record the fact that we send a link to fill a transaction?? keep history of completion rate etc..
 
 Views:
 - Ledger

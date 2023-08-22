@@ -2,13 +2,14 @@ from typing import List, Optional, Any
 from uuid import UUID
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Body, Depends, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, Body, Depends, WebSocket, WebSocketDisconnect, BackgroundTasks
 from pymongo import errors
 from pydantic.networks import EmailStr
 from pydantic import ValidationError
 
 from jsonschema import validate
 
+import time
 import asyncio
 import logging
 import base64
@@ -53,14 +54,21 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+def write_notification(email: str, message=""):
+    time.sleep(3)
+    print(email)
+
+
 @router.get("/{ledgerUUID}", response_model=List[schemas.Transaction])
 async def get_transactions(
+    background_tasks: BackgroundTasks,
     ledgerUUID: UUID,
     limit: Optional[int] = 10,
     offset: Optional[int] = 0,
     user_info: models.User = Depends(get_current_active_user),
     #admin_user: models.User = Depends(get_current_active_superuser),
 ):
+    background_tasks.add_task(write_notification, "yoyo", message="some notification")
 
     #first we check that the ledger is accessible
     ledger = await models.Ledger.find_one({
@@ -162,14 +170,14 @@ async def register_transaction(
 @router.post("/{ledgerUUID}/{base64_payload}")#, response_model=schemas.Transaction)
 async def register_transaction_encoded(
     ledgerUUID: UUID,
-    base64_payload: str,
-    #user_info: dict = Body(...),
-    user_info: models.User = Depends(get_current_active_user)
+    base64_payload: str#,
+    #user_info: dict = Body(...)#,
+    #user_info: models.User = Depends(get_current_active_user)
 ):
     """
     Register a new transaction.
     """
-
+    user_info = {"name":"Roman","email":"jojo@jojo.fr"}
     # Check if ledger exists:
     ledger = await models.Ledger.find_one({"uuid": ledgerUUID})
     if ledger is None:
@@ -186,12 +194,12 @@ async def register_transaction_encoded(
             raise HTTPException(status_code=400,detail="AH!"+str(e))
         
         validate_transaction(payload,ledger.ledgerSchema)
-        print(user_info.get('email'))
+        #print(user_info.get('email'))
         
         #if validate_transaction_payload:
         #    return validate_transaction_payload
 
-        transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"created_by":user_info.email})
+        transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"created_by":"jojo@jojo.fr"})
 
         # if transaction does not exist
         if transaction is None or ledger.allow_multiple:
@@ -201,8 +209,8 @@ async def register_transaction_encoded(
                     ledgerUUID=ledgerUUID,
                     payload=payload,
                     payload_hist=[payload],
-                    user_info = user_info,
-                    created_by=user_info.email
+                    user_info = {"name":"roman"},#user_info,
+                    created_by="jojo@jojo.fr"#user_info.email
                 )
                 #print(payload)
             except ValidationError as e:

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { JsonForms } from '@jsonforms/react';
-import { object, person } from '@jsonforms/examples';
+import { person } from '@jsonforms/examples';
 import {
   materialRenderers,
   materialCells,
@@ -14,13 +14,20 @@ import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import Backdrop from '@mui/material/Backdrop';
 import { apiURL } from '../config';
-import { Container } from '@mui/system';
+import Container from 'react-bootstrap/Container';
 
 
 function CreateTransaction()  {
-    const [schema, setSchema] = useState({});
-    const [model, setModel] = useState({});
-    const [data, setData] = useState<any>({});
+
+
+const initialData = person.data;
+const [data, setData] = useState(initialData);
+
+
+  const [schema, setSchema] = useState<any>({});
+  const [test, setTest] = useState<any>({});
+  const [model, setModel] = useState<any>({});
+ //   const [data, setData] = useState<any>({});
     const componentIsMounted = useRef(true);
     const { objectModelId } = useParams();
     const { payload = null} = useParams();
@@ -32,7 +39,7 @@ function CreateTransaction()  {
     useEffect(() => {
       setIsLoading(true);
      
-      fetch(apiURL+'/api/models/'+objectModelId, {
+      fetch('http://0.0.0.0:8000/api/v1/ledgers/'+objectModelId, {
         method: 'GET',
         headers: {
          'Content-Type': 'application/json',
@@ -41,7 +48,8 @@ function CreateTransaction()  {
      })
      .then((response) => response.json())
      .then((data) => {
-        setSchema(data.object_model)
+        console.log(data.ledgerSchema)
+        setSchema(data.ledger_schema)
         //setData(JSON.parse(Buffer.from(String(payload), 'base64').toString('ascii')))
         setIsLoading(false)   // Hide loading screen 
      })
@@ -117,7 +125,7 @@ function CreateTransaction()  {
       console.log(data)
       const encodedData = Buffer.from(JSON.stringify(data)).toString('base64');
       console.log(encodedData)
-      fetch(apiURL+'/api/transaction/'+objectModelId+'/'+encodedData, {
+      fetch('http://0.0.0.0:8000/api/v1/transactions/'+objectModelId+'/'+encodedData, {
         method: 'POST',
         headers: {
          'Content-Type': 'application/json',
@@ -151,7 +159,16 @@ function CreateTransaction()  {
 
   return (
     <Container>
-          <JsonForms schema={schema} data={data} renderers={materialRenderers} cells={materialCells} onChange={({ data, errors }) => setData(data)}/>
+      
+      
+      <JsonForms
+        schema={schema}
+        data={data}
+        renderers={materialRenderers}
+        cells={materialCells}
+        onChange={({ data, errors }) => setData(data)}
+      />
+
           <Button variant="contained" endIcon={<SendIcon />} onClick={() => handleSubmit()}>
             Validate
           </Button>
@@ -163,6 +180,7 @@ function CreateTransaction()  {
           <CircularProgress color="inherit" />
         </Backdrop>
     </Container>
+
 
   );
 }
