@@ -35,6 +35,15 @@ app.mount("/serverjs",
     StaticFiles(directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")),
     name= "static")
 
+
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:8080",
+    "http://0.0.0.0:3000"
+]
+print(settings.BACKEND_CORS_ORIGINS)
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
