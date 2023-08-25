@@ -7,6 +7,7 @@ from pymongo import errors
 from pydantic.networks import EmailStr
 from pydantic import ValidationError
 
+from app.utils import email_notification
 from jsonschema import validate
 
 import time
@@ -68,7 +69,10 @@ async def get_transactions(
     user_info: models.User = Depends(get_current_active_user),
     #admin_user: models.User = Depends(get_current_active_superuser),
 ):
+    background_tasks.add_task(email_notification.sending_email)
     background_tasks.add_task(write_notification, "yoyo", message="some notification")
+    background_tasks.add_task(email_notification.sending_email)
+
 
     #first we check that the ledger is accessible
     ledger = await models.Ledger.find_one({
