@@ -58,6 +58,7 @@ manager = ConnectionManager()
 def write_notification(email: str, message=""):
     time.sleep(3)
     print(email)
+    print(message)
 
 
 @router.get("/{ledgerUUID}", response_model=List[schemas.Transaction])
@@ -69,9 +70,7 @@ async def get_transactions(
     user_info: models.User = Depends(get_current_active_user),
     #admin_user: models.User = Depends(get_current_active_superuser),
 ):
-    background_tasks.add_task(email_notification.sending_email)
-    background_tasks.add_task(write_notification, "yoyo", message="some notification")
-    background_tasks.add_task(email_notification.sending_email)
+    background_tasks.add_task(email_notification.sending_email,"test1",str(user_info))
 
 
     #first we check that the ledger is accessible
@@ -173,15 +172,17 @@ async def register_transaction(
 
 @router.post("/{ledgerUUID}/{base64_payload}")#, response_model=schemas.Transaction)
 async def register_transaction_encoded(
+    background_tasks: BackgroundTasks,
     ledgerUUID: UUID,
-    base64_payload: str#,
+    base64_payload: str,
     #user_info: dict = Body(...)#,
-    #user_info: models.User = Depends(get_current_active_user)
+    user_info: models.User = Depends(get_current_active_user)
 ):
     """
     Register a new transaction.
     """
-    user_info = {"name":"Roman","email":"jojo@jojo.fr"}
+
+
     # Check if ledger exists:
     ledger = await models.Ledger.find_one({"uuid": ledgerUUID})
     if ledger is None:
@@ -203,18 +204,19 @@ async def register_transaction_encoded(
         #if validate_transaction_payload:
         #    return validate_transaction_payload
 
-        transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"created_by":"jojo@jojo.fr"})
+        transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"created_by":user_info.email})
 
         # if transaction does not exist
         if transaction is None or ledger.allow_multiple:
             print("no transactions exist - ok to persist")
             try:
+                background_tasks.add_task(email_notification.sending_email,"new entry!","",str(ledger),str(user_info))
                 transaction = models.Transaction(
                     ledgerUUID=ledgerUUID,
                     payload=payload,
                     payload_hist=[payload],
-                    user_info = {"name":"roman"},#user_info,
-                    created_by="jojo@jojo.fr"#user_info.email
+                    user_info = user_info,
+                    created_by=user_info.email
                 )
                 #print(payload)
             except ValidationError as e:
@@ -239,6 +241,7 @@ async def register_transaction_encoded(
                 # if yes, if the date is empty or after the current datetime, we can persist the change
                 if ledger.allow_change_until_date is None or ledger.allow_change_until_date > datetime.now():
                     print("changing")
+                    background_tasks.add_task(email_notification.sending_email,"updated entry!","",str(ledger),str(user_info))
                     transaction.payload = payload
                     transaction.payload_hist.append(payload)
                     #print(payload)

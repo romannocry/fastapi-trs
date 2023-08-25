@@ -3,3 +3,9 @@
 
 sudo find / -name mongod.conf 2>/dev/null
 sudo find / -name mongodb-27017.sock’ 2>/dev/null
+
+
+example payload base 64:
+eyJuYXRpb25hbGl0eSI6IkRFIiwib2NjdXBhdGlvbiI6ImZpcmUifQ==
+
+ledger:d5274d67-c35d-413d-b568-e5efa6d367cb
