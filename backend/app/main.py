@@ -12,6 +12,7 @@ from .config.config import settings
 from .models.users import User
 from .models.ledgers import Ledger
 from .models.transactions import Transaction
+from .models.testParent import TestParent
 from .auth.auth import get_hashed_password
 
 from starlette.staticfiles import StaticFiles
@@ -36,14 +37,8 @@ app.mount("/serverjs",
     name= "static")
 
 
-origins = [
-    "http://localhost.tiangolo.com",
-    "https://localhost.tiangolo.com",
-    "http://localhost",
-    "http://localhost:8080",
-    "http://0.0.0.0:3000"
-]
-print(settings.BACKEND_CORS_ORIGINS)
+
+#print(settings.BACKEND_CORS_ORIGINS)
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
@@ -63,7 +58,7 @@ async def start_database():
         username=settings.MONGO_USER,
         password=settings.MONGO_PASSWORD,
     )
-    await init_beanie(database=app.client[settings.MONGO_DB], document_models=[User,Ledger,Transaction])
+    await init_beanie(database=app.client[settings.MONGO_DB], document_models=[User,Ledger,Transaction,TestParent])
 
     user = await User.find_one({"email": settings.FIRST_SUPERUSER})
     if not user:

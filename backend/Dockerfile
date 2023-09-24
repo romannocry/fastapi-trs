@@ -1,4 +1,5 @@
 FROM tiangolo/uvicorn-gunicorn-fastapi:latest
+
 ENV PYTHONUNBUFFERED=true
 WORKDIR /app
 
@@ -16,3 +17,5 @@ RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; els
 
 COPY . /app
 ENV PYTHONPATH=/app
+
+#CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

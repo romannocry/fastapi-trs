@@ -20,9 +20,8 @@ import Container from 'react-bootstrap/Container';
 function CreateTransaction()  {
 
 
-const initialData = person.data;
+const initialData = {}//person.data;
 const [data, setData] = useState(initialData);
-
 
   const [schema, setSchema] = useState<any>({});
   const [test, setTest] = useState<any>({});
@@ -39,7 +38,7 @@ const [data, setData] = useState(initialData);
     useEffect(() => {
       setIsLoading(true);
      
-      fetch('http://0.0.0.0:8000/api/v1/ledgers/'+objectModelId, {
+      fetch('http://localhost:8000/api/v1/ledgers/'+objectModelId, {
         method: 'GET',
         headers: {
          'Content-Type': 'application/json',
@@ -49,7 +48,10 @@ const [data, setData] = useState(initialData);
      .then((response) => response.json())
      .then((data) => {
         console.log(data.ledgerSchema)
-        setSchema(data.ledger_schema)
+        var dataset = data.ledgerSchema
+        //dataset = schema2
+        setSchema(dataset)
+
         //setData(JSON.parse(Buffer.from(String(payload), 'base64').toString('ascii')))
         setIsLoading(false)   // Hide loading screen 
      })
@@ -78,7 +80,7 @@ const [data, setData] = useState(initialData);
         const encodedData = Buffer.from(payload, 'base64').toString('ascii')
         setData(JSON.parse(encodedData))    
         const MySwal = withReactContent(Swal)
-        fetch(apiURL+'/api/transaction/'+objectModelId+'/'+payload, {
+        fetch('http://localhost:8000/api/v1/transactions/'+objectModelId+'/'+payload, {
           method: 'POST',
           headers: {
            'Content-Type': 'application/json',
@@ -87,26 +89,31 @@ const [data, setData] = useState(initialData);
        })
        .then((response) => response.json())
        .then((data) => {
-          //console.log(data);
-          let timerInterval   
+        // Check if the response has a 'detail' field
+        if (data.detail) {
+          // Display the detail message using Swal
           MySwal.fire({
-              //position: 'top-end',
-              icon: 'success', title: 'Thanks for your input!', showConfirmButton: false,
-              timer: 2000, timerProgressBar: true,
-              didOpen: () => {MySwal.showLoading(null);},
-              didClose: () => {console.log('closing')}
-            })
-            console.log("return")
+            icon: 'error',
+            title: 'API Error',
+            text: data.detail,
+            timer: 2000, timerProgressBar: true,
+            didClose: () => {console.log('closing')}
+          });
+        } else {
+          // Handle the success case
+          console.log('Success:', data);
+          MySwal.fire({
+            icon: 'success',
+            title: 'Thank for your input',
+            timer: 2000, timerProgressBar: true,
+            didClose: () => {console.log('closing')},
+            didOpen: () => {MySwal.showLoading(null);}
+
+          });
+        }
        })
        .catch((err) => {
           console.log(err.message);
-          MySwal.fire({
-            //position: 'top-end',
-            icon: 'error',title: err.message,showConfirmButton: false,
-            timer: 4000, timerProgressBar: true,
-            didOpen: () => {MySwal.showLoading(null);},
-            didClose: () => {console.log('closing')}
-          })
        });
 
     } else {
@@ -125,7 +132,7 @@ const [data, setData] = useState(initialData);
       console.log(data)
       const encodedData = Buffer.from(JSON.stringify(data)).toString('base64');
       console.log(encodedData)
-      fetch('http://0.0.0.0:8000/api/v1/transactions/'+objectModelId+'/'+encodedData, {
+      fetch('http://localhost:8000/api/v1/transactions/'+objectModelId+'/'+encodedData, {
         method: 'POST',
         headers: {
          'Content-Type': 'application/json',
@@ -134,24 +141,47 @@ const [data, setData] = useState(initialData);
         //body: JSON.stringify(trs_model)
 
      })
-     .then((response) => response.json())
-     .then((data) => {
-        console.log(data);
-        let timerInterval   
+     .then(response => {
+      if (!response.ok) {
+        console.log("")
+        //throw new Error('Network response was not ok');
+      }
+      return response.json(); // Parse the JSON response
+    })
+    .then(data => {
+      // Check if the response has a 'detail' field
+      if (data.detail) {
+        // Display the detail message using Swal
         MySwal.fire({
-            //position: 'top-end',
-            icon: 'success', title: 'Thanks for your input!', showConfirmButton: false,
-            timer: 2000, timerProgressBar: true,
-            didOpen: () => {MySwal.showLoading(null);},
-            didClose: () => {console.log('closing')}
-          })
-        
-     })
-     .catch((err) => {
-        console.log(err.message);
-     });
+          icon: 'error',
+          title: 'API Error',
+          text: data.detail,
+        });
+      } else {
+        // Handle the success case
+        console.log('Success:', data);
+        MySwal.fire({
+          icon: 'success',
+          title: 'Thank for your input',
+        });
+      }
+    })
+    .catch(error => {
+      // Handle network errors or other issues
+      console.error('Fetch Error:', error);
+      console.log(error.response)
+      // Display a generic error message using Swal
+      MySwal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while processing your request.',
+      });
+    });
+  
+  
+
         return () => {
-        //componentIsMounted.current = false;
+           
         };
       
     };

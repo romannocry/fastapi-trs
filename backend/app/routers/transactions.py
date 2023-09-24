@@ -55,11 +55,16 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-def write_notification(email: str, message=""):
-    time.sleep(3)
-    print(email)
-    print(message)
 
+@router.get("", response_model=List[schemas.Transaction])
+async def get_ledgers(
+    limit: Optional[int] = 10,
+    offset: Optional[int] = 0,
+    user_info: models.User = Depends(get_current_active_user),
+    #admin_user: models.User = Depends(get_current_active_superuser),
+):
+    transactions = await models.Transaction.find({"created_by":user_info.email}).skip(offset).limit(limit).to_list()
+    return transactions
 
 @router.get("/{ledgerUUID}", response_model=List[schemas.Transaction])
 async def get_transactions(
@@ -175,28 +180,28 @@ async def register_transaction_encoded(
     background_tasks: BackgroundTasks,
     ledgerUUID: UUID,
     base64_payload: str,
-    #user_info: dict = Body(...)#,
-    user_info: models.User = Depends(get_current_active_user)
+    #user_info: dict = Body(...),
+    #user_info: models.User = Depends(get_current_active_user)
 ):
     """
     Register a new transaction.
     """
-
-
+    user_info = {
+        'name':"roman",
+        'email':"roman.medioni@sgcib.com"
+    }
+    
     # Check if ledger exists:
     ledger = await models.Ledger.find_one({"uuid": ledgerUUID})
     if ledger is None:
         raise HTTPException(status_code=404, detail="Ledger not found")
     else: 
         try:
-            print(base64_payload)
             payload = base64.b64decode(base64_payload)
-            print(payload)
-            print(type(payload))
             payload = json.loads(payload)
             print(type(payload))
         except Exception as e:
-            raise HTTPException(status_code=400,detail="AH!"+str(e))
+            raise HTTPException(status_code=400,detail=f'{e}')
         
         validate_transaction(payload,ledger.ledgerSchema)
         #print(user_info.get('email'))
@@ -204,7 +209,7 @@ async def register_transaction_encoded(
         #if validate_transaction_payload:
         #    return validate_transaction_payload
 
-        transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"created_by":user_info.email})
+        transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"created_by":user_info['email']})
 
         # if transaction does not exist
         if transaction is None or ledger.allow_multiple:
@@ -216,7 +221,7 @@ async def register_transaction_encoded(
                     payload=payload,
                     payload_hist=[payload],
                     user_info = user_info,
-                    created_by=user_info.email
+                    created_by=user_info['email']
                 )
                 #print(payload)
             except ValidationError as e:
@@ -256,11 +261,11 @@ async def register_transaction_encoded(
                     #    )
                 else:
                     raise HTTPException(
-                        status_code=400, detail="transaction exists but could only be changed until "+str(ledger.allow_change_until_date)
+                        status_code=400, detail=f"Input already exists and could only be changed until {ledger.allow_change_until_date.strftime('%d/%m/%Y')}"
                     ) 
             else:
                 raise HTTPException(
-                    status_code=400, detail="Changing is not allowed"
+                    status_code=400, detail="Your input has already been taken into account"
                 )
 
 
