@@ -36,6 +36,7 @@ class Ledger(Document):
     triggers: Optional[List] = Field(default=list)
     #group: in order to open ledgers that are linked to each other
     group: Optional[str] = None
+    quizMode: Optional[bool] = Field(default=False)
 
     @validator('allow_change', always=True)
     def allow_change_xor_multiple(cls, v, values):
