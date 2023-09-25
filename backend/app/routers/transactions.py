@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Body, Depends, WebSocket, WebSocke
 from pymongo import errors
 from pydantic.networks import EmailStr
 from pydantic import ValidationError
+from fastapi.responses import JSONResponse
 
 from app.utils import email_notification
 from jsonschema import validate
@@ -248,13 +249,15 @@ async def register_transaction_encoded(
                     print("changing")
                     background_tasks.add_task(email_notification.sending_email,"updated entry!","",str(ledger),str(user_info))
                     transaction.payload = payload
-                    transaction.payload_hist.append(payload)
+                    transaction.payload_hist.append({'payload':payload,'updated_at':datetime.now()})
                     #print(payload)
                     transaction.updated_at = datetime.now()
                     #try:
                     await transaction.save()
                     await manager.broadcast(transaction,transaction.ledgerUUID)
                     return transaction
+                    #return JSONResponse(content={'status':''}, status_code=200)
+
                     #except Exception as e: 
                     #    raise HTTPException(
                     #        status_code=400, detail=e
@@ -319,7 +322,7 @@ def validate_transaction(transaction_payload,ledger_schema):
             return True
         except Exception as e:
             raise HTTPException(
-                status_code=400,detail="OH!"+str(e)
+                status_code=400,detail=f'{e}'
             )
 
 

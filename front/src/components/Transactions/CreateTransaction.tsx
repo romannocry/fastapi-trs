@@ -90,26 +90,31 @@ const [data, setData] = useState(initialData);
        .then((response) => response.json())
        .then((data) => {
         // Check if the response has a 'detail' field
+        console.log("***")
+        console.log(data)
+        console.log("***")
         if (data.detail) {
           // Display the detail message using Swal
           MySwal.fire({
             icon: 'error',
             title: 'API Error',
             text: data.detail,
-            timer: 2000, timerProgressBar: true,
-            didClose: () => {console.log('closing')}
+            timer: 6000, timerProgressBar: true,
+            didClose: () => {console.log('redirect')}
           });
         } else {
           // Handle the success case
           console.log('Success:', data);
           MySwal.fire({
             icon: 'success',
-            title: 'Thank for your input',
-            timer: 2000, timerProgressBar: true,
-            didClose: () => {console.log('closing')},
-            didOpen: () => {MySwal.showLoading(null);}
-
+            title: 'Thank for your input, you can close this window',
+            timer: 6000, timerProgressBar: true,
+            didClose: () => {console.log("redirect")},
+            //didOpen: () => {MySwal.showLoading(null);},
+            confirmButtonText: 'Close',
+            showConfirmButton: true,
           });
+          
         }
        })
        .catch((err) => {
