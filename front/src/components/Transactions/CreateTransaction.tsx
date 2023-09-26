@@ -75,7 +75,8 @@ const [data, setData] = useState(initialData);
       //console.log(payload)
       //console.log(type)
 
-      if (payload !== null) { 
+      if (payload !== null) {
+        try {
         //submitting a payload on click
         const encodedData = Buffer.from(payload, 'base64').toString('ascii')
         setData(JSON.parse(encodedData))    
@@ -87,8 +88,13 @@ const [data, setData] = useState(initialData);
            'Authorization': JSON.stringify({'id':1,'username':'romannn','email':'babe'})        
           },
        })
-       .then((response) => response.json())
-       .then((data) => {
+       .then((response) => {
+        if (!response.ok) {
+          //throw new Error('Network response was not ok');
+        }
+        return response.json(); // Parse the JSON response
+      })
+      .then((data) => {
         // Check if the response has a 'detail' field
         console.log("***")
         console.log(data)
@@ -102,6 +108,17 @@ const [data, setData] = useState(initialData);
             timer: 6000, timerProgressBar: true,
             didClose: () => {console.log('redirect')}
           });
+        } else if (data.updated) {
+          MySwal.fire({
+            icon: 'info',
+            title: 'Input modified',
+            timer: 6000, timerProgressBar: true,
+            didClose: () => {console.log("redirect")},
+            //didOpen: () => {MySwal.showLoading(null);},
+            confirmButtonText: 'Close',
+            showConfirmButton: true,
+          });
+
         } else {
           // Handle the success case
           console.log('Success:', data);
@@ -119,8 +136,11 @@ const [data, setData] = useState(initialData);
        })
        .catch((err) => {
           console.log(err.message);
+          
        });
-
+      } catch (error) {
+        console.log(error)
+      }
     } else {
         //no payload - trigger on submit
 
@@ -161,14 +181,33 @@ const [data, setData] = useState(initialData);
           icon: 'error',
           title: 'API Error',
           text: data.detail,
+          timer: 6000, timerProgressBar: true,
+          didClose: () => {console.log('redirect')}
         });
+      } else if (data.updated) {
+        MySwal.fire({
+          icon: 'info',
+          title: 'Input modified',
+          timer: 6000, timerProgressBar: true,
+          didClose: () => {console.log("redirect")},
+          //didOpen: () => {MySwal.showLoading(null);},
+          confirmButtonText: 'Close',
+          showConfirmButton: true,
+        });
+
       } else {
         // Handle the success case
         console.log('Success:', data);
         MySwal.fire({
           icon: 'success',
-          title: 'Thank for your input',
+          title: 'Thank for your input, you can close this window',
+          timer: 6000, timerProgressBar: true,
+          didClose: () => {console.log("redirect")},
+          //didOpen: () => {MySwal.showLoading(null);},
+          confirmButtonText: 'Close',
+          showConfirmButton: true,
         });
+        
       }
     })
     .catch(error => {

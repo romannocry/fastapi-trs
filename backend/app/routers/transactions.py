@@ -176,7 +176,7 @@ async def register_transaction(
                     status_code=400, detail="Changing is not allowed"
                 )
 
-@router.post("/{ledgerUUID}/{base64_payload}")#, response_model=schemas.Transaction)
+@router.post("/{ledgerUUID}/{base64_payload}", response_model=schemas.Transaction)
 async def register_transaction_encoded(
     background_tasks: BackgroundTasks,
     ledgerUUID: UUID,
@@ -255,8 +255,8 @@ async def register_transaction_encoded(
                     #try:
                     await transaction.save()
                     await manager.broadcast(transaction,transaction.ledgerUUID)
-                    return transaction
-                    #return JSONResponse(content={'status':''}, status_code=200)
+                    #return transaction
+                    return JSONResponse(content={'updated':True}, status_code=200)
 
                     #except Exception as e: 
                     #    raise HTTPException(
