@@ -38,7 +38,7 @@ const [data, setData] = useState(initialData);
     useEffect(() => {
       setIsLoading(true);
      
-      fetch('http://localhost:8000/api/v1/ledgers/'+objectModelId, {
+      fetch('http://192.168.12.143:8000/api/v1/ledgers/'+objectModelId, {
         method: 'GET',
         headers: {
          'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ const [data, setData] = useState(initialData);
         const encodedData = Buffer.from(payload, 'base64').toString('ascii')
         setData(JSON.parse(encodedData))    
         const MySwal = withReactContent(Swal)
-        fetch('http://localhost:8000/api/v1/transactions/'+objectModelId+'/'+payload, {
+        fetch('http://192.168.12.143:8000/api/v1/transactions/'+objectModelId+'/'+payload, {
           method: 'POST',
           headers: {
            'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ const [data, setData] = useState(initialData);
       console.log(data)
       const encodedData = Buffer.from(JSON.stringify(data)).toString('base64');
       console.log(encodedData)
-      fetch('http://localhost:8000/api/v1/transactions/'+objectModelId+'/'+encodedData, {
+      fetch('http://192.168.12.143:8000/api/v1/transactions/'+objectModelId+'/'+encodedData, {
         method: 'POST',
         headers: {
          'Content-Type': 'application/json',

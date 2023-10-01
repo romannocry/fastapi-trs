@@ -7,9 +7,14 @@ from pymongo import errors
 from pydantic.networks import EmailStr
 from pydantic import ValidationError
 from fastapi.responses import JSONResponse
+import random
+
 
 from app.utils import email_notification
+from app.utils.flatten_dict import *
 from jsonschema import validate
+from bson import json_util
+
 
 import time
 import asyncio
@@ -44,15 +49,10 @@ class ConnectionManager:
         await websocket.send_text(message)
 
     async def broadcast(self, message: str, ledgerUUID: str):
-        print("broadcast")
         for connection in self.active_connections:
-            conn = connection.get('ws')
-            #print(connection.get('ws'))
-            #await connection.send_text(json.dumps(message.payload))
-            #await connection.send_text(message)
-            if conn.path_params['ledgerUUID'] == str(ledgerUUID):
-                print("ready to broadcast")
-                await conn.send_text(str(message))
+            if connection.path_params['ledgerUUID'] == str(ledgerUUID):
+                print(f"ready to broadcast data of {ledgerUUID}")
+                await connection.send_text(str(message))
 
 manager = ConnectionManager()
 
@@ -73,10 +73,10 @@ async def get_transactions(
     ledgerUUID: UUID,
     limit: Optional[int] = 10,
     offset: Optional[int] = 0,
-    user_info: models.User = Depends(get_current_active_user),
+    #user_info: models.User = Depends(get_current_active_user),
     #admin_user: models.User = Depends(get_current_active_superuser),
 ):
-    background_tasks.add_task(email_notification.sending_email,"test1",str(user_info))
+    #background_tasks.add_task(email_notification.sending_email,"test1",str(user_info))
 
 
     #first we check that the ledger is accessible
@@ -84,7 +84,7 @@ async def get_transactions(
         "uuid": ledgerUUID,
         "access_rights":{
           "$elemMatch": {  
-              "email":user_info.email,
+              #"email":user_info.email,
               #"profile":{ "$in": ["admin", "write","ee"] }
           }
         }
@@ -187,9 +187,10 @@ async def register_transaction_encoded(
     """
     Register a new transaction.
     """
+    randomNum = random.randrange(0, 500)
     user_info = {
         'name':"roman",
-        'email':"roman.medioni@sgcib.com"
+        'email':f"{randomNum}roman.medioni@sgcib.com"
     }
     
     # Check if ledger exists:
@@ -233,7 +234,8 @@ async def register_transaction_encoded(
             
             try:
                 await transaction.create()
-                await manager.broadcast(transaction,transaction.ledgerUUID)
+                transaction_json = json_util.dumps(convert_uuids(transaction.dict()))
+                await manager.broadcast(transaction_json,transaction.ledgerUUID)
                 return transaction
             #except errors.DuplicateKeyError:
             except Exception as e: 
@@ -246,17 +248,23 @@ async def register_transaction_encoded(
             if ledger.allow_change:
                 # if yes, if the date is empty or after the current datetime, we can persist the change
                 if ledger.allow_change_until_date is None or ledger.allow_change_until_date > datetime.now():
-                    print("changing")
-                    background_tasks.add_task(email_notification.sending_email,"updated entry!","",str(ledger),str(user_info))
+                    #print("changing")
+                    #background_tasks.add_task(email_notification.sending_email,"updated entry!","",str(ledger),str(user_info))
                     transaction.payload = payload
                     transaction.payload_hist.append({'payload':payload,'updated_at':datetime.now()})
                     #print(payload)
                     transaction.updated_at = datetime.now()
                     #try:
                     await transaction.save()
-                    await manager.broadcast(transaction,transaction.ledgerUUID)
-                    #return transaction
-                    return JSONResponse(content={'updated':True}, status_code=200)
+                    print("broadcasting")
+                    # Convert to JSON using pymongo.json_util
+                    transaction_json = json_util.dumps(convert_uuids(transaction.dict()))
+                    #await manager.broadcast(flatten_dict(transaction_json),transaction.ledgerUUID)
+                    #print(convert_uuids(transaction.dict()))
+                    await manager.broadcast(transaction_json,transaction.ledgerUUID)
+
+                    return transaction
+                    #return JSONResponse(content={'updated':True}, status_code=200)
 
                     #except Exception as e: 
                     #    raise HTTPException(
@@ -327,11 +335,11 @@ def validate_transaction(transaction_payload,ledger_schema):
 
 
 # Note that the verb is `websocket` here, not `get`, `post`, etc.
-@router.websocket("/ws/{ledgerUUID}")
-async def websocket_endpoint(websocket: WebSocket,ledgerUUID: UUID):#,user_info: models.User = Depends(get_current_active_user)):
+@router.websocket("/ws2/{ledgerUUID}")
+async def websocket_endpoint2(websocket: WebSocket,ledgerUUID: UUID):#,user_info: models.User = Depends(get_current_active_user)):
     # Accept the connection from a client.
+    print("connection accepted!!!")
     await websocket.accept()
-    
     try:
         while True:
             data = await websocket.receive_text()
@@ -353,21 +361,29 @@ async def websocket_endpoint(websocket: WebSocket,ledgerUUID: UUID):#,user_info:
                     }
                     }
                     })
-                if ledger is None:
-                    print("access rights not enough")
-                    await websocket.send_text(json.dumps({"status_code:":403,"detail":"Credentials too low"}))
-                    #raise HTTPException(status_code=403, detail="Connection denied")
-                    #raise HTTPException(status_code=404, detail="ledger not found or you do not have access to the ledger")
-                else:
-                    # Add the WebSocket connection to the list of active connections
-                    print("access rights ok")
-                    manager.active_connections.append({"ws":websocket,"user":authenticated.email})
+                
+            ledger = await models.Ledger.find_one({
+                    "uuid": ledgerUUID,
+                    "access_rights":{
+
+                    }
+            })
+            if ledger is None:
+                print("access rights not enough")
+                await websocket.send_text(json.dumps({"status_code:":403,"detail":"Credentials too low"}))
+                #raise HTTPException(status_code=403, detail="Connection denied")
+                #raise HTTPException(status_code=404, detail="ledger not found or you do not have access to the ledger")
+            else:
+                # Add the WebSocket connection to the list of active connections
+                print("access rights ok")
+                manager.active_connections.append({"ws":websocket,"user":'roman.medioni@sgcib.com'})
 
             #await manager.broadcast(data)  # Broadcast the received data to all connected clients
     except WebSocketDisconnect:
 
         # Remove the WebSocket connection using list comprehension
         #ws_to_remove = [conn for conn in manager.active_connections if conn["ws"] == websocket]
+        print(manager.active_connection)
         ws_to_remove = [index for index, conn in enumerate(manager.active_connections) if conn["ws"] == websocket]
 
         print(ws_to_remove[0])
@@ -381,5 +397,20 @@ async def websocket_endpoint(websocket: WebSocket,ledgerUUID: UUID):#,user_info:
 
 
 
+#user can get a live feed of the data_stream_id
+@router.websocket("/ws/{ledgerUUID}")
+async def websocket_endpoint(websocket: WebSocket,ledgerUUID: UUID):#,user_info: models.User = Depends(get_current_active_user)):
 
+    payload = {}
+    print("ws")
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            #manager.broadcast(data)
+            print(data)
+            print(type(data))
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+        #await manager.broadcast(f"Client #{objectModelId} left the chat")
 
