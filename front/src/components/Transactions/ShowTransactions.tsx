@@ -5,6 +5,8 @@ import io from 'socket.io-client';
 import { initiateSocket } from '../Socket/socket';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+import 'ag-grid-community/styles/ag-theme-material.css';
+
 import { GridApi } from 'ag-grid-community';
 import { apiURL } from '../config';
 import { wsURL } from '../config';
@@ -18,13 +20,15 @@ interface Transaction {
   payload_hist: string; 
 }
 
+
+
 function ShowTransactions() {
     console.log("loading transactions")
     const { objectModelId } = useParams();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [gridApi, setGridApi] = useState({});
-    const [gridApiRefState, setGridApiRef] = useState({});
+    const [gridApiRefState, setGridApiRef] = useState<any>(null)
     const [gridData, setGridData] = useState([]);
+    const [gridApi, setGridApi] = useState<any>(null); // Adjust the type as needed
 
     //const [gridApi, setGridApi] = useState<any>({});
     const socketRef = useRef(false);
@@ -35,10 +39,23 @@ function ShowTransactions() {
       setTransactions(prevTransactions => [...prevTransactions, newTransaction]);
     };
 
+    const gridOptions = {
+      rowGrouping: true, // Enable row grouping
+    };
+
+    const onBtnExport = () => {
+      console.log("BTN")
+      console.log(gridApi.exportDataAsCsv())
+      //gridApiRefState.current.api.exportDataAsCsv();
+
+      //gridApiRefState.api.exportDataAsCsv();
+    }
+
     const getGridData = (params: any) => {
         //console.log("showTransaction")
        // console.log(objectModelId)
        gridApiRef.current = params.api // <= assigned gridApi value on Grid ready
+       setGridApi(params.api);
        //console.log(gridApiRef.current)
        //gridOptionsRef.current = params
         // Using Fetch API
@@ -75,9 +92,11 @@ function ShowTransactions() {
               let colDefs = Array<{}>();
               //gridOptions.api.getColumnDefs();
               const keys = Object.keys(data[0])
-              keys.forEach(key => colDefs.push({field : key}));
+              keys.forEach(key => colDefs.push({field : key, filter: 'agMultiColumnFilter', resizable: true, cellStyle: { fontSize: '10px',margin: '0px' }}));
+              console.log(colDefs)
               gridApiRef.current.setColumnDefs(colDefs)
               gridApiRef.current.setRowData(transactionsWithStringifiedProps)
+              setGridApiRef(gridApiRef)
         }    
       })
         
@@ -99,7 +118,6 @@ function ShowTransactions() {
         socketRef.current = true;
         console.log(transactions);
         var ws = new WebSocket('ws://192.168.12.143:8000/api/v1/transactions/ws/'+objectModelId);
-        console.log(ws)
         ws.onmessage = function(event) {
           //console.log(gridOptionsRef.current)
           //console.log(gridApiRef.current)
@@ -182,11 +200,18 @@ function ShowTransactions() {
         
 
     return (
-        <div className="ag-theme-alpine-dark" style={{height: 1300}}>
+        <div className="ag-theme-alpine-dark" style={{ height: '50vh', width: '100vw' }}>
+            <div>
+              <button onClick={onBtnExport} >Download CSV export file</button>
+            </div>
+            
             <AgGridReact
                 //rowData={rowData}
                 //columnDefs={columnDefs}
-                pagination={true} 
+                pagination={true}
+                rowHeight={20} // Set a small value for minimal row height
+                domLayout='autoHeight'
+
                 onGridReady={params => {
                     console.log("AgGridWithUseState Grid Ready");
                     //setGridApi(params.api)
