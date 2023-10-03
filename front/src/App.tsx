@@ -27,7 +27,6 @@ function App() {
   return (
     <div className={`App ${theme}`}>
        <Router>
-       <CollapsibleExample></CollapsibleExample>
        <Container fluid>
           <Routes>
           <Route path="/layout" element={<Layout/>}/>

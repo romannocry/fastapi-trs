@@ -117,10 +117,29 @@ function ShowTransactions() {
         if (socketRef.current) return;
         socketRef.current = true;
         console.log(transactions);
+
+
+
+
+
+
+
         var ws = new WebSocket('ws://192.168.12.143:8000/api/v1/transactions/ws/'+objectModelId);
+        
+        ws.onopen = () => ws.send("token");
+
+        ws.onclose = (event) => {
+          console.log('WebSocket connection closed:', event);
+        };
+        
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+        };
+
         ws.onmessage = function(event) {
           //console.log(gridOptionsRef.current)
           //console.log(gridApiRef.current)
+          console.log(event)
           var transactionData = JSON.parse(event.data);
           // Convert payload and payload_hist objects to strings
           const transactionWithParsedProps = {
@@ -200,18 +219,21 @@ function ShowTransactions() {
         
 
     return (
-        <div className="ag-theme-alpine-dark" style={{ height: '50vh', width: '100vw' }}>
-            <div>
-              <button onClick={onBtnExport} >Download CSV export file</button>
-            </div>
+
+      <>
+        <div style={{ backgroundColor:'red', height: '10vh', width: '100vw' }}>
+        <button onClick={onBtnExport} >Download CSV export file</button>
+      </div>
+        <div className="ag-theme-alpine-dark" style={{ height: '90vh', width: '100vw' }}>
+
             
             <AgGridReact
                 //rowData={rowData}
                 //columnDefs={columnDefs}
                 pagination={true}
                 rowHeight={20} // Set a small value for minimal row height
-                domLayout='autoHeight'
-
+                //domLayout='autoHeight'
+                
                 onGridReady={params => {
                     console.log("AgGridWithUseState Grid Ready");
                     //setGridApi(params.api)
@@ -221,6 +243,7 @@ function ShowTransactions() {
                 >      
             </AgGridReact>
         </div>
+        </>
     );
 }
 

@@ -6,15 +6,6 @@ from datetime import datetime
 from pydantic import BaseModel as _BaseModel
 
 
-class BaseModel(_BaseModel):
-    class Config:
-        @staticmethod
-        def schema_extra(schema: dict, _):
-            props = {}
-            for k, v in schema.get('properties', {}).items():
-                if not v.get("hidden", False):
-                    props[k] = v
-            schema["properties"] = props
 
 # Shared properties
 class TransactionBase(BaseModel):
@@ -22,7 +13,9 @@ class TransactionBase(BaseModel):
     payload: Optional[dict] = None
     payload_hist: Optional[List[dict]] = None
     created_by: Optional[EmailStr] = None
-    user_info: Optional[dict] = None
+    #user_info: Optional[dict] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 # Properties to receive via API on creation
 class TransactionCreate(TransactionBase):

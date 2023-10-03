@@ -393,24 +393,62 @@ async def websocket_endpoint2(websocket: WebSocket,ledgerUUID: UUID):#,user_info
         manager.active_connections.pop(ws_to_remove[0])
 
 
-
-
-
-
-#user can get a live feed of the data_stream_id
+#private live feed
 @router.websocket("/ws/{ledgerUUID}")
 async def websocket_endpoint(websocket: WebSocket,ledgerUUID: UUID):#,user_info: models.User = Depends(get_current_active_user)):
-
-    payload = {}
-    print("ws")
+    #await websocket.accept()   
     await manager.connect(websocket)
     try:
         while True:
             data = await websocket.receive_text()
             #manager.broadcast(data)
+            print('*****')
+            print('***SOCKET**')
             print(data)
-            print(type(data))
+            if data != "token":
+                print("no token received")
+                await websocket.close(reason="You are not authorized to connect")
+                break
+            else:
+                print("connected")
+                #manager.active_connections.append({"ws":websocket,"user":'roman.medioni@sgcib.com'})
+                
+            print('*****')
     except WebSocketDisconnect:
+        # Handle disconnection, raise an error if needed
+        print('*****')
+        print(str(manager.active_connections))
         manager.disconnect(websocket)
-        #await manager.broadcast(f"Client #{objectModelId} left the chat")
+        print(str(manager.active_connections))
+        #await manager.broadcast(f"Client disconnect from {ledgerUUID}",ledgerUUID)
+        print('*****')
 
+#public live feed
+@router.websocket("/live/{ledgerUUID}")
+async def websocket_endpoint(websocket: WebSocket,ledgerUUID: UUID):#,user_info: models.User = Depends(get_current_active_user)):
+    #await websocket.accept()   
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            #manager.broadcast(data)
+            print('*****')
+            print('***SOCKET**')
+            print(data)
+            if data != "token":
+                print("no token received")
+                await websocket.close(reason="You are not authorized to connect")
+                break
+            else:
+                print("connected")
+                #manager.active_connections.append({"ws":websocket,"user":'roman.medioni@sgcib.com'})
+                
+            print('*****')
+    except WebSocketDisconnect:
+        # Handle disconnection, raise an error if needed
+        print('*****')
+        print(str(manager.active_connections))
+        manager.disconnect(websocket)
+        print(str(manager.active_connections))
+        #await manager.broadcast(f"Client disconnect from {ledgerUUID}",ledgerUUID)
+        print('*****')
