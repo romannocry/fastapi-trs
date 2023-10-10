@@ -58,17 +58,18 @@ manager = ConnectionManager()
 
 
 @router.get("", response_model=List[schemas.Transaction])
-async def get_ledgers(
-    limit: Optional[int] = 10,
+async def get_transactions_from_user(
+    limit: Optional[int] = 100,
     offset: Optional[int] = 0,
-    user_info: models.User = Depends(get_current_active_user),
+    #user_info: models.User = Depends(get_current_active_user),
     #admin_user: models.User = Depends(get_current_active_superuser),
 ):
-    transactions = await models.Transaction.find({"created_by":user_info.email}).skip(offset).limit(limit).to_list()
+    transactions = await models.Transaction.find({"created_by":"3roman.medioni@sgcib.com"}).skip(offset).limit(limit).to_list()
     return transactions
 
+
 @router.get("/{ledgerUUID}", response_model=List[schemas.Transaction])
-async def get_transactions(
+async def get_transactions_from_ledger(
     background_tasks: BackgroundTasks,
     ledgerUUID: UUID,
     limit: Optional[int] = 10,
@@ -96,6 +97,25 @@ async def get_transactions(
     transactions = await models.Transaction.find({
         "ledgerUUID": ledgerUUID,
         }).skip(offset).limit(limit).to_list()
+    return transactions
+
+@router.get("/me/{ledgerUUID}", response_model=List[schemas.Transaction])
+async def get_transactions_from_current_user_and_ledger(
+    background_tasks: BackgroundTasks,
+    ledgerUUID: UUID,
+    limit: Optional[int] = 10,
+    offset: Optional[int] = 0,
+    #user_info: models.User = Depends(get_current_active_user),
+    #admin_user: models.User = Depends(get_current_active_superuser),
+):
+
+    transactions = await models.Transaction.find({
+        "ledgerUUID": ledgerUUID,
+        "created_by":"3roman.medioni@sgcib.com"
+        }).skip(offset).limit(limit).to_list()
+    
+
+
     return transactions
 
 @router.post("")#, response_model=schemas.Transaction)
@@ -187,7 +207,7 @@ async def register_transaction_encoded(
     """
     Register a new transaction.
     """
-    randomNum = random.randrange(0, 500)
+    randomNum = random.randrange(0, 5)
     user_info = {
         'name':"roman",
         'email':f"{randomNum}roman.medioni@sgcib.com"
@@ -263,8 +283,8 @@ async def register_transaction_encoded(
                     #print(convert_uuids(transaction.dict()))
                     await manager.broadcast(transaction_json,transaction.ledgerUUID)
 
-                    return transaction
-                    #return JSONResponse(content={'updated':True}, status_code=200)
+                    #return transaction
+                    return JSONResponse(content={'updated':True}, status_code=200)
 
                     #except Exception as e: 
                     #    raise HTTPException(

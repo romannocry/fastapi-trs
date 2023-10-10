@@ -13,271 +13,204 @@ import {Buffer} from 'buffer';
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import Backdrop from '@mui/material/Backdrop';
-import { apiURL } from '../config';
 import Container from 'react-bootstrap/Container';
+import {useSearchParams, useLocation, useNavigate} from 'react-router-dom';
+import { update } from '@jsonforms/core';
 
 
 function CreateTransaction()  {
-
-
-const initialData = {}//person.data;
-const [data, setData] = useState(initialData);
-
+  
+  const [data, setData] = useState({});
+  const [backendUrl,setbackEndUrl] = useState("http://localhost:8000")
   const [schema, setSchema] = useState<any>({});
-  const [test, setTest] = useState<any>({});
-  const [model, setModel] = useState<any>({});
- //   const [data, setData] = useState<any>({});
-    const componentIsMounted = useRef(true);
-    const { objectModelId } = useParams();
-    const { payload = null} = useParams();
-    const { type = null } = useParams();
-    const typeRef = useRef(false);
-    const [isLoading, setIsLoading] = useState(false);
-
-    //console.log("loading Form")
-    useEffect(() => {
-      setIsLoading(true);
-     
-      fetch('http://192.168.12.143:8000/api/v1/ledgers/'+objectModelId, {
-        method: 'GET',
-        headers: {
-         'Content-Type': 'application/json',
-         'Authorization': JSON.stringify({'id':1,'username':'roman','email':'babe'})        
-        },
-     })
-     .then((response) => response.json())
-     .then((data) => {
-        console.log(data.ledgerSchema)
-        var dataset = data.ledgerSchema
-        //dataset = schema2
-        setSchema(dataset)
-
-        //setData(JSON.parse(Buffer.from(String(payload), 'base64').toString('ascii')))
-        setIsLoading(false)   // Hide loading screen 
-     })
-     .catch((err) => {
-        console.log(err.message);
-        setIsLoading(false)   // Hide loading screen 
-     });
-        return () => {
-        componentIsMounted.current = false;
-        };
-    }, []);
-
-    useEffect(() => {
-      if (typeRef.current) return;
-      typeRef.current = true;
-      handleUrlSubmission(payload,type)
-    }, [type]);
-
-
-    const handleUrlSubmission = (payload: any,type: any) =>{     
-      //console.log(payload)
-      //console.log(type)
-
-      if (payload !== null) {
-        try {
-        //submitting a payload on click
-        const encodedData = Buffer.from(payload, 'base64').toString('ascii')
-        setData(JSON.parse(encodedData))    
-        const MySwal = withReactContent(Swal)
-        fetch('http://192.168.12.143:8000/api/v1/transactions/'+objectModelId+'/'+payload, {
-          method: 'POST',
-          headers: {
-           'Content-Type': 'application/json',
-           'Authorization': JSON.stringify({'id':1,'username':'romannn','email':'babe'})        
-          },
-       })
-       .then((response) => {
-        if (!response.ok) {
-          //throw new Error('Network response was not ok');
-        }
-        return response.json(); // Parse the JSON response
-      })
+  const componentIsMounted = useRef(true);
+  const { ledgerId } = useParams();
+  const { payload = null} = useParams();
+  const { type = null } = useParams();
+  const typeRef = useRef(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [isUpdate, setIsUpdate] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation()
+  const navigate = useNavigate()
+  
+  //console.log("loading Form")
+  useEffect(() => {
+    setIsLoading(true);
+    fetch(backendUrl + '/api/v1/ledgers/' + ledgerId, {
+      method: 'GET'
+    })
+      .then((response) => response.json())
       .then((data) => {
-        // Check if the response has a 'detail' field
-        console.log("***")
-        console.log(data)
-        console.log("***")
-        if (data.detail) {
-          // Display the detail message using Swal
-          MySwal.fire({
-            icon: 'error',
-            title: 'API Error',
-            text: data.detail,
-            timer: 6000, timerProgressBar: true,
-            didClose: () => {console.log('redirect')}
-          });
-        } else if (data.updated) {
-          MySwal.fire({
-            icon: 'info',
-            title: 'Input modified',
-            timer: 6000, timerProgressBar: true,
-            didClose: () => {console.log("redirect")},
-            //didOpen: () => {MySwal.showLoading(null);},
-            confirmButtonText: 'Close',
-            showConfirmButton: true,
-          });
-
-        } else {
-          // Handle the success case
-          console.log('Success:', data);
-          MySwal.fire({
-            icon: 'success',
-            title: 'Thank for your input, you can close this window',
-            timer: 6000, timerProgressBar: true,
-            didClose: () => {console.log("redirect")},
-            //didOpen: () => {MySwal.showLoading(null);},
-            confirmButtonText: 'Close',
-            showConfirmButton: true,
-          });
-          
+        setSchema(data.ledgerSchema);
+    
+        // Now, fetch transactions using the user ID or any relevant information
+        return fetch(backendUrl + '/api/v1/transactions/me/' + ledgerId, {
+          method: 'GET'
+        });
+      })
+      .then((transactionResponse) => transactionResponse.json())
+      .then((transactionData) => {
+        // Handle transaction data as needed
+        console.log(transactionData);
+        if (transactionData[0]){
+          setData(transactionData[0].payload)
         }
-       })
-       .catch((err) => {
+        setIsLoading(false); // Hide loading screen
+      })
+      .catch((err) => {
+        console.error(err.message);
+        setIsLoading(false); // Hide loading screen
+      });
+    return () => {
+      componentIsMounted.current = false;
+    };
+  }, []);
+  
+  useEffect(() => {
+    if (typeRef.current) return;
+    typeRef.current = true;
+    console.log("attribute detected")
+    handleTransaction(payload)
+  }, [type]);
+  
+  
+  const handleTransaction = (urlPayload?: any) =>{     
+    const MySwal = withReactContent(Swal)
+    //check whether we are getting a payload from the params or input
+    try {
+      //ternary operator to define the payload between input or params
+      let isUrlPayload = urlPayload ? true : false
+      //get b64 payload
+      let payload_b64 = isUrlPayload ? urlPayload : Buffer.from(JSON.stringify(data)).toString('base64')
+      //get json payload
+      let payload_json = isUrlPayload ? JSON.parse(Buffer.from(urlPayload, 'base64').toString('ascii')) : data
+      // check if object empty
+      let isPayloadEmpty = Object.keys(payload_json).length === 0
+      //set data - only useful if we want to display the current payload in database
+      setData(payload_json)
+      
+      console.log('isurlpayload: '+isUrlPayload)
+      console.log('isPayloadEmpty: '+isPayloadEmpty)
+      console.log(payload_b64)
+      console.log(payload_json)
+
+      //Post transaction with payload if data not empty
+      if (!isPayloadEmpty) {
+        fetch(backendUrl+'/api/v1/transactions/'+ledgerId+'/'+payload_b64, {
+          method: 'POST'
+        })
+        .then((response) => {
+          if (!response.ok) {
+            //throw new Error('Network response was not ok');
+          }
+          return response.json(); // Parse the JSON response
+        })
+        .then((data) => {
+          // Check if the response has a 'detail' field
+          if (data.detail) {
+            // Display the detail message using Swal
+            
+            MySwal.fire({
+              icon: 'error',
+              title: 'API Error',
+              text: data.detail,
+              //timer: 6000, timerProgressBar: true,
+              didClose: () => {console.log('close')}
+            });
+          } else if (data.updated) {
+            setIsUpdate(true)
+            MySwal.fire({
+              icon: 'info',
+              title: 'Input modified',
+              text: 'Your modification has been taken into account',
+              //timer: 6000, timerProgressBar: true,
+              didClose: () => {console.log("close")},
+              //didOpen: () => {MySwal.showLoading(null);},
+              confirmButtonText: 'Close',
+              showConfirmButton: true,
+            });
+            
+          } else {
+            // Handle the success case
+            console.log('Success:', data);
+            setIsSuccess(true)
+            
+          }
+        })
+        .catch((err) => {
           console.log(err.message);
           
-       });
-      } catch (error) {
-        console.log(error)
+        });
       }
-    } else {
-        //no payload - trigger on submit
-
-       }
-
-        return () => {
-        //componentIsMounted.current = false;
-        };
+      //no need for else
       
-    };
-
-    const handleSubmit = () =>{     
-      const MySwal = withReactContent(Swal)
-      console.log(data)
-      const encodedData = Buffer.from(JSON.stringify(data)).toString('base64');
-      console.log(encodedData)
-      fetch('http://192.168.12.143:8000/api/v1/transactions/'+objectModelId+'/'+encodedData, {
-        method: 'POST',
-        headers: {
-         'Content-Type': 'application/json',
-         'Authorization': JSON.stringify({'id':1,'username':'roman','email':'babe'})        
-        },
-        //body: JSON.stringify(trs_model)
-
-     })
-     .then(response => {
-      if (!response.ok) {
-        console.log("")
-        //throw new Error('Network response was not ok');
-      }
-      return response.json(); // Parse the JSON response
-    })
-    .then(data => {
-      // Check if the response has a 'detail' field
-      if (data.detail) {
-        // Display the detail message using Swal
-        MySwal.fire({
-          icon: 'error',
-          title: 'API Error',
-          text: data.detail,
-          timer: 6000, timerProgressBar: true,
-          didClose: () => {console.log('redirect')}
-        });
-      } else if (data.updated) {
-        MySwal.fire({
-          icon: 'info',
-          title: 'Input modified',
-          timer: 6000, timerProgressBar: true,
-          didClose: () => {console.log("redirect")},
-          //didOpen: () => {MySwal.showLoading(null);},
-          confirmButtonText: 'Close',
-          showConfirmButton: true,
-        });
-
-      } else {
-        // Handle the success case
-        console.log('Success:', data);
-        MySwal.fire({
-          icon: 'success',
-          title: 'Thank for your input, you can close this window',
-          timer: 6000, timerProgressBar: true,
-          didClose: () => {console.log("redirect")},
-          //didOpen: () => {MySwal.showLoading(null);},
-          confirmButtonText: 'Close',
-          showConfirmButton: true,
-        });
-        
-      }
-    })
-    .catch(error => {
-      // Handle network errors or other issues
-      console.error('Fetch Error:', error);
-      console.log(error.response)
-      // Display a generic error message using Swal
+    } catch (error: any) {
+      /*if (inputPayloadEmpty) {
+        const { pathname } = location;
+        const updatedUrl = pathname.substring(0,pathname.lastIndexOf('/'))
+        // Use navigate to replace the current URL without the specified parameter
+        window.history.replaceState(null, '', updatedUrl);
+        //navigate(updatedUrl)        
+      }*/
       MySwal.fire({
         icon: 'error',
-        title: 'Error',
-        text: 'An error occurred while processing your request.',
+        title: 'Input Error',
+        text: error.message,
+        //timer: 6000, timerProgressBar: true,
+        didClose: () => {console.log('redirect')}
       });
-    });
-  
-  
-
-        return () => {
-           
-        };
       
+    }
+    return () => {
+      //componentIsMounted.current = false;
     };
-
-
+    
+  };
+  
   return (
-    <Container>
+    
+    <div>
+    {isSuccess ? (
+      <div className="body">
+      {/*<h2 className="text__loading">loading</h2> */}
+      <span className="trigger scale"></span>
+      <a href="#" className="button"><span className="checkmark"></span>
+      </a>
+      <h1 className="text__success">success ! you can close this page !</h1>
+      </div>
       
-      
-      <JsonForms
+      ) : (
+        
+        <>
+        <JsonForms
         schema={schema}
         data={data}
         renderers={materialRenderers}
         cells={materialCells}
         onChange={({ data, errors }) => setData(data)}
-      />
-
-          <Button variant="contained" endIcon={<SendIcon />} onClick={() => handleSubmit()}>
-            Validate
-          </Button>
-          <Backdrop
-          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-          open={isLoading}
-          //onClick={handleClose}
+        />
+        {!isUpdate ? (
+        <Button variant="contained" endIcon={<SendIcon />} onClick={() => handleTransaction()}>
+        Validate
+        </Button>
+        ):(<></>)}
+        
+        <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={isLoading}
+        //onClick={handleClose}
         >
-          <CircularProgress color="inherit" />
+        <CircularProgress color="inherit" />
         </Backdrop>
-    </Container>
-
-
-  );
-}
-
-export default CreateTransaction;
-
-//          {isLoading ? <CircularProgress />: <JsonForms schema={schema} data={data} renderers={materialRenderers} cells={materialCells} onChange={({ data, errors }) => setData(data)}/>}
-/*
-
-      switch(type) {
-        case 'fast':
-          console.log("fast")
-          handleUrlSubmission(payload)
-          break;
-        case 'admin':
-          console.log("admin")
-          break;
-        case 'moderator':
-          console.log("moderator")
-          break;
-        default:
-          console.log("default")
-          break;
+        </>
+        )}
+        </div>
+        
+        
+        
+        );
       }
-
-  */
+      
+      export default CreateTransaction;

@@ -16,7 +16,7 @@
   import IconButton, { IconButtonProps } from '@mui/material/IconButton';
   import MoreVertIcon from '@mui/icons-material/MoreVert';
   import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-  import { apiURL, appURL } from '../config';
+  import { apiURL, appURL } from '../../config';
   import Matrix from './Matrix';
   //Goal of Model Links is to give the links to:
   // - fast fill up to 2 attributes without seeing the form - close on post

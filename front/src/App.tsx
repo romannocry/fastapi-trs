@@ -1,18 +1,19 @@
 import React,{ useState } from 'react';
 import logo from './logo.svg';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import CollapsibleExample from './components/Navbar/main';
-import ShowModels from './components/Models/ModelList';
-import Models from './components/Models/Models';
-import ShowTransactions from './components/Transactions/ShowTransactions';
+
+
+import Home from './components/Home/Home';
+import Ledgers from './components/Ledgers/Ledgers';
+import LedgerTransactionList from './components/Transactions/LedgerTransactionList';
 //import "react-toggle/style.css" // for ES6 modules
 import { BrowserRouter as Router, Routes, HashRouter, Link, Route, NavLink } from "react-router-dom";
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import CreateModel from './components/Models/CreateModel';
+import { Container } from 'reactstrap';
+
+import CreateModel from './components/Ledgers/old/CreateModel';
 import CreateTransaction from './components/Transactions/CreateTransaction';
-import ModelSettings from './components/Models/ModelSettings';
+import ModelSettings from './components/Ledgers/old/ModelSettings';
 import Layout from './components/Testing/layout';
 
 function App() {
@@ -25,27 +26,26 @@ function App() {
     }
   };
   return (
-    <div className={`App ${theme}`}>
+    <Container fluid style={{width:'100%'}} >
+
        <Router>
-       <Container fluid>
           <Routes>
           <Route path="/layout" element={<Layout/>}/>
-          <Route path="/models" element={<Models/>}/>
-          <Route path="/models/create" element={<CreateModel/>}/>
-          <Route path="/models/:objectModelId" element={<ModelSettings/>}/>
-          <Route path="/transaction/:objectModelId">
+          <Route path="/ledgers" element={<Ledgers/>}/>
+          <Route path="/ledger/create" element={<CreateModel/>}/>
+          <Route path="/ledger/edit/:ledgerId" element={<ModelSettings/>}/>
+          <Route path="/ledger/:ledgerId/transactions" element={<LedgerTransactionList/>}/>
+          <Route path="/ledger/:ledgerId/create-transaction">
             <Route path="" element={<CreateTransaction />} />
-            <Route path=":payload">
-            <Route path="" element={<CreateTransaction />} />
-            <Route path=":type" element={<CreateTransaction />} />
-            </Route>
-          </Route>
-          <Route path="/transactions/:objectModelId" element={<ShowTransactions/>}/>
-        </Routes>
-      </Container> 
-    </Router>
+            <Route path=":payload" element={<CreateTransaction />} />
+          </Route>  
 
-    </div>
+          <Route path="/" element={<Home/>}/>
+
+        </Routes>
+    </Router>
+    </Container> 
+
   );
 }
 

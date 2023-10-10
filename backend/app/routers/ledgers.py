@@ -68,13 +68,13 @@ async def register_ledger(
 async def get_ledgers(
     limit: Optional[int] = 10,
     offset: Optional[int] = 0,
-    user_info: models.User = Depends(get_current_active_user),
+    #user_info: models.User = Depends(get_current_active_user),
     #admin_user: models.User = Depends(get_current_active_superuser),
 ):
     ledgers = await models.Ledger.find({
         "access_rights":{
           "$elemMatch": {  
-              "email":user_info.email
+              #"email":user_info.email
           }
         }
 
@@ -109,8 +109,16 @@ async def get_ledger(
           }
         }
         })
+
     if ledger is None:
         raise HTTPException(status_code=404, detail="ledger not found or you do not have access to the ledger")
+    else:
+        transaction_count = await models.Transaction.find({
+            "ledgerUUID": ledger.uuid
+        }).count()
+        print(transaction_count)
+        setattr(ledger,"transaction_count", transaction_count)
+    
     return ledger
 
 

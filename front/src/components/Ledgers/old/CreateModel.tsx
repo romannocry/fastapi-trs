@@ -20,7 +20,7 @@ import Editor, { DiffEditor, useMonaco, loader } from "@monaco-editor/react";
 import {Link, Routes, Route, useNavigate} from 'react-router-dom';
 import withReactContent from 'sweetalert2-react-content';
 import Swal from 'sweetalert2';
-import { apiURL } from '../config';
+import { apiURL } from '../../config';
 
 
 

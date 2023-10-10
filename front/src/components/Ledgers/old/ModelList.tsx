@@ -23,7 +23,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import ModelCard from './ModelCard';
-import { apiURL } from '../config';
+import { apiURL } from '../../config';
 
 
 function ShowModels() {

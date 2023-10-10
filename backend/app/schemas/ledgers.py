@@ -15,8 +15,9 @@ class LedgerBase(BaseModel):
     allow_multiple: Optional[bool] = Field(default=False)
     triggers: Optional[List] = Field(default_factory=list)
     group: Optional[str] = None
+    access_rights: Optional[List] = Field(default_factory=list)
+    transaction_count: Optional[int] = None
 
-       
 # Properties to receive via API on creation
 class LedgerCreate(LedgerBase):
     name: str

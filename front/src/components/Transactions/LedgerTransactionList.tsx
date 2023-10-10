@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import { BrowserRouter, HashRouter, Link, Route, useParams } from "react-router-dom";
-import io from 'socket.io-client';
-import { initiateSocket } from '../Socket/socket';
+import { useParams } from "react-router-dom";
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import 'ag-grid-community/styles/ag-theme-material.css';
+import { Button } from 'reactstrap';
 
-import { GridApi } from 'ag-grid-community';
-import { apiURL } from '../config';
-import { wsURL } from '../config';
 
 interface Transaction {
   uuid: string;
@@ -22,9 +18,9 @@ interface Transaction {
 
 
 
-function ShowTransactions() {
-    console.log("loading transactions")
-    const { objectModelId } = useParams();
+function LedgerTransactionList() {
+    const [backendUrl,setbackEndUrl] = useState("http://localhost:8000")
+    const { ledgerId } = useParams();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [gridApiRefState, setGridApiRef] = useState<any>(null)
     const [gridData, setGridData] = useState([]);
@@ -45,7 +41,7 @@ function ShowTransactions() {
 
     const onBtnExport = () => {
       console.log("BTN")
-      console.log(gridApi.exportDataAsCsv())
+      gridApi.exportDataAsCsv()
       //gridApiRefState.current.api.exportDataAsCsv();
 
       //gridApiRefState.api.exportDataAsCsv();
@@ -59,7 +55,7 @@ function ShowTransactions() {
        //console.log(gridApiRef.current)
        //gridOptionsRef.current = params
         // Using Fetch API
-        fetch('http://192.168.12.143:8000/api/v1/transactions/'+objectModelId+'?limit=1000', {
+        fetch(backendUrl+'/api/v1/transactions/'+ledgerId+'?limit=1000', {
           method: 'GET',
           headers: {
           'Content-Type': 'application/json',
@@ -118,13 +114,7 @@ function ShowTransactions() {
         socketRef.current = true;
         console.log(transactions);
 
-
-
-
-
-
-
-        var ws = new WebSocket('ws://192.168.12.143:8000/api/v1/transactions/ws/'+objectModelId);
+        var ws = new WebSocket('ws://localhost:8000/api/v1/transactions/ws/'+ledgerId);
         
         ws.onopen = () => ws.send("token");
 
@@ -222,7 +212,7 @@ function ShowTransactions() {
 
       <>
         <div style={{ backgroundColor:'red', height: '10vh', width: '100vw' }}>
-        <button onClick={onBtnExport} >Download CSV export file</button>
+        <Button onClick={onBtnExport} outline>Danger!</Button>
       </div>
         <div className="ag-theme-alpine-dark" style={{ height: '90vh', width: '100vw' }}>
 
@@ -247,4 +237,4 @@ function ShowTransactions() {
     );
 }
 
-export default ShowTransactions;
+export default LedgerTransactionList;
