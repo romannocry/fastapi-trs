@@ -74,7 +74,7 @@ async def get_transactions_from_ledger(
     ledgerUUID: UUID,
     limit: Optional[int] = 10,
     offset: Optional[int] = 0,
-    #user_info: models.User = Depends(get_current_active_user),
+    user_info: models.User = Depends(get_current_active_user),
     #admin_user: models.User = Depends(get_current_active_superuser),
 ):
     #background_tasks.add_task(email_notification.sending_email,"test1",str(user_info))
@@ -105,13 +105,13 @@ async def get_transactions_from_current_user_and_ledger(
     ledgerUUID: UUID,
     limit: Optional[int] = 10,
     offset: Optional[int] = 0,
-    #user_info: models.User = Depends(get_current_active_user),
+    user_info: models.User = Depends(get_current_active_user),
     #admin_user: models.User = Depends(get_current_active_superuser),
 ):
 
     transactions = await models.Transaction.find({
         "ledgerUUID": ledgerUUID,
-        "created_by":"3roman.medioni@sgcib.com"
+        "created_by":user_info.email
         }).skip(offset).limit(limit).to_list()
     
 
@@ -122,7 +122,6 @@ async def get_transactions_from_current_user_and_ledger(
 async def register_transaction(
     ledgerUUID: UUID = Body(...),
     payload: dict = Body(...),
-    #user_info: dict = Body(...),
     user_info: models.User = Depends(get_current_active_user)
 ):
     """
@@ -201,17 +200,16 @@ async def register_transaction_encoded(
     background_tasks: BackgroundTasks,
     ledgerUUID: UUID,
     base64_payload: str,
-    #user_info: dict = Body(...),
-    #user_info: models.User = Depends(get_current_active_user)
+    user_info: models.User = Depends(get_current_active_user)
 ):
     """
     Register a new transaction.
     """
-    randomNum = random.randrange(0, 5)
-    user_info = {
-        'name':"roman",
-        'email':f"{randomNum}roman.medioni@sgcib.com"
-    }
+    #randomNum = random.randrange(0, 5)
+    #user_info = {
+    #    'name':"roman",
+    #    'email':f"{randomNum}roman.medioni@sgcib.com"
+    #}
     
     # Check if ledger exists:
     ledger = await models.Ledger.find_one({"uuid": ledgerUUID})
@@ -231,7 +229,7 @@ async def register_transaction_encoded(
         #if validate_transaction_payload:
         #    return validate_transaction_payload
 
-        transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"created_by":user_info['email']})
+        transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"created_by":user_info.email})
 
         # if transaction does not exist
         if transaction is None or ledger.allow_multiple:
@@ -243,7 +241,7 @@ async def register_transaction_encoded(
                     payload=payload,
                     payload_hist=[payload],
                     user_info = user_info,
-                    created_by=user_info['email']
+                    created_by=user_info.email
                 )
                 #print(payload)
             except ValidationError as e:

@@ -39,7 +39,11 @@ function CreateTransaction()  {
   useEffect(() => {
     setIsLoading(true);
     fetch(backendUrl + '/api/v1/ledgers/' + ledgerId, {
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTc2ODA1MTIsInN1YiI6Ijg2YjM4NTUwLWJlMzMtNGQxYS1hZGQ5LTJjYTk2OGE2YzMyZiJ9.u1VqhlfAZN7Ymz7EMS7N9hnwyKYw38EC9eZVchbVAXU"      
+        },
     })
       .then((response) => response.json())
       .then((data) => {
@@ -47,7 +51,11 @@ function CreateTransaction()  {
     
         // Now, fetch transactions using the user ID or any relevant information
         return fetch(backendUrl + '/api/v1/transactions/me/' + ledgerId, {
-          method: 'GET'
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTc2ODA1MTIsInN1YiI6Ijg2YjM4NTUwLWJlMzMtNGQxYS1hZGQ5LTJjYTk2OGE2YzMyZiJ9.u1VqhlfAZN7Ymz7EMS7N9hnwyKYw38EC9eZVchbVAXU"      
+            },
         });
       })
       .then((transactionResponse) => transactionResponse.json())
@@ -99,7 +107,11 @@ function CreateTransaction()  {
       //Post transaction with payload if data not empty
       if (!isPayloadEmpty) {
         fetch(backendUrl+'/api/v1/transactions/'+ledgerId+'/'+payload_b64, {
-          method: 'POST'
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTc2ODA1MTIsInN1YiI6Ijg2YjM4NTUwLWJlMzMtNGQxYS1hZGQ5LTJjYTk2OGE2YzMyZiJ9.u1VqhlfAZN7Ymz7EMS7N9hnwyKYw38EC9eZVchbVAXU"      
+            },
         })
         .then((response) => {
           if (!response.ok) {

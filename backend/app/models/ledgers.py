@@ -4,6 +4,7 @@ from beanie import Document, Indexed
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 from pytz import timezone
+from .transactions import Transaction
 import pytz
 
 # Define the Eastern Time zone
@@ -38,6 +39,13 @@ class Ledger(Document):
     group: Optional[str] = None
     quizMode: Optional[bool] = Field(default=False)
     transaction_count: Optional[int] = None
+    
+    #@property
+    #async def transaction_count(self):
+    #    return await Transaction.collection.count_documents({"ledgerUUID": self.uuid})
+
+    async def calculate_transaction_count(self):
+            self.transaction_count = await Transaction.find({"ledgerUUID": self.uuid}).count()
 
     @validator('allow_change', always=True)
     def allow_change_xor_multiple(cls, v, values):
