@@ -227,14 +227,13 @@ async def register_transaction_encoded(
             raise HTTPException(status_code=400,detail=f'{e}')
         
         validate_transaction(payload,ledger.ledgerSchema)
-        #print(user_info.get('email'))
-        
-        #if validate_transaction_payload:
-        #    return validate_transaction_payload
-
+   
         transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"created_by":user_info.email})
-
+        transactionCount = await models.Transaction.find({"ledgerUUID": ledgerUUID}).count()
+        #if transactionCount >= ledger.max_transactions:
+        #    raise HTTPException(status_code=402, detail=f"Input was capped at {ledger.max_transactions}")
         # if transaction does not exist
+        #if ledger.max_transactions is None:
         if transaction is None or ledger.allow_multiple:
             print("no transactions exist - ok to persist")
             try:
