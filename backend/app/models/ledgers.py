@@ -26,6 +26,7 @@ class Ledger(Document):
     ledgerSchema: dict
     allow_change: Optional[bool] = Field(default=False)
     allow_change_until_date: Optional[datetime] = None # ISO 8601 format
+    expiry_date: Optional[datetime] = None # ISO 8601 format
     allow_multiple: Optional[bool] = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
@@ -39,6 +40,8 @@ class Ledger(Document):
     group: Optional[str] = None
     quizMode: Optional[bool] = Field(default=False)
     transaction_count: Optional[int] = None
+    max_transactions: Optional[int] = None
+    
     
     #@property
     #async def transaction_count(self):

@@ -132,15 +132,16 @@ async def register_transaction(
     ledger = await models.Ledger.find_one({"uuid": ledgerUUID})
     if ledger is None:
         raise HTTPException(status_code=404, detail="Ledger not found")
-    else: 
+    elif ledger.expiry_date < datetime.now(): 
+        raise HTTPException(status_code=402, detail="Ledger expired!")
+    else:
         validate_transaction(payload,ledger.ledgerSchema)
-        print(user_info.get('email'))
-        
         #if validate_transaction_payload:
         #    return validate_transaction_payload
 
         transaction = await models.Transaction.find_one({"ledgerUUID": ledgerUUID,"created_by":user_info.email})
 
+        
         # if transaction does not exist
         if transaction is None or ledger.allow_multiple:
             print("no transactions exist - ok to persist")
@@ -215,6 +216,8 @@ async def register_transaction_encoded(
     ledger = await models.Ledger.find_one({"uuid": ledgerUUID})
     if ledger is None:
         raise HTTPException(status_code=404, detail="Ledger not found")
+    elif ledger.expiry_date < datetime.now(): 
+        raise HTTPException(status_code=402, detail=f"Ledger expired on {ledger.expiry_date.strftime('%d/%m/%Y')}")
     else: 
         try:
             payload = base64.b64decode(base64_payload)

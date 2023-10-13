@@ -203,11 +203,9 @@ function CreateTransaction()  {
         cells={materialCells}
         onChange={({ data, errors }) => setData(data)}
         />
-        {!isUpdate ? (
         <Button variant="contained" endIcon={<SendIcon />} onClick={() => handleTransaction()}>
         Validate
         </Button>
-        ):(<></>)}
         
         <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
@@ -226,3 +224,11 @@ function CreateTransaction()  {
       }
       
       export default CreateTransaction;
+
+      /*
+      {!isUpdate ? (
+        <Button variant="contained" endIcon={<SendIcon />} onClick={() => handleTransaction()}>
+        Validate
+        </Button>
+        ):(<></>)}
+      */

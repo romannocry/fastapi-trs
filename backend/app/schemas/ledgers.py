@@ -12,11 +12,13 @@ class LedgerBase(BaseModel):
     ledgerSchema: Optional[dict] = None
     allow_change: Optional[bool] = Field(default=False)
     allow_change_until_date: Optional[datetime] = None # ISO 8601 format
+    expiry_date: Optional[datetime] = None # ISO 8601 format
     allow_multiple: Optional[bool] = Field(default=False)
     triggers: Optional[List] = Field(default_factory=list)
     group: Optional[str] = None
     access_rights: Optional[List] = Field(default_factory=list)
     transaction_count: Optional[int] = None
+    max_transactions: Optional[int] = None
 
 # Properties to receive via API on creation
 class LedgerCreate(LedgerBase):
