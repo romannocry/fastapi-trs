@@ -64,7 +64,7 @@ async def get_transactions_from_user(
     #user_info: models.User = Depends(get_current_active_user),
     #admin_user: models.User = Depends(get_current_active_superuser),
 ):
-    transactions = await models.Transaction.find({"created_by":"3roman.medioni@sgcib.com"}).skip(offset).limit(limit).to_list()
+    transactions = await models.Transaction.find({"created_by":"3roman.medioni@gmail.com"}).skip(offset).limit(limit).to_list()
     return transactions
 
 
@@ -209,7 +209,7 @@ async def register_transaction_encoded(
     #randomNum = random.randrange(0, 5)
     #user_info = {
     #    'name':"roman",
-    #    'email':f"{randomNum}roman.medioni@sgcib.com"
+    #    'email':f"{randomNum}roman.medioni@gmail.com"
     #}
     
     # Check if ledger exists:
@@ -396,7 +396,7 @@ async def websocket_endpoint2(websocket: WebSocket,ledgerUUID: UUID):#,user_info
             else:
                 # Add the WebSocket connection to the list of active connections
                 print("access rights ok")
-                manager.active_connections.append({"ws":websocket,"user":'roman.medioni@sgcib.com'})
+                manager.active_connections.append({"ws":websocket,"user":'roman.medioni@gmail.com'})
 
             #await manager.broadcast(data)  # Broadcast the received data to all connected clients
     except WebSocketDisconnect:
@@ -431,7 +431,7 @@ async def websocket_endpoint(websocket: WebSocket,ledgerUUID: UUID):#,user_info:
                 break
             else:
                 print("connected")
-                #manager.active_connections.append({"ws":websocket,"user":'roman.medioni@sgcib.com'})
+                #manager.active_connections.append({"ws":websocket,"user":'roman.medioni@gmail.com'})
                 
             print('*****')
     except WebSocketDisconnect:
@@ -461,7 +461,7 @@ async def websocket_endpoint(websocket: WebSocket,ledgerUUID: UUID):#,user_info:
                 break
             else:
                 print("connected")
-                #manager.active_connections.append({"ws":websocket,"user":'roman.medioni@sgcib.com'})
+                #manager.active_connections.append({"ws":websocket,"user":'roman.medioni@gmail.com'})
                 
             print('*****')
     except WebSocketDisconnect:

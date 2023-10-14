@@ -27,7 +27,7 @@ class FakeUser:
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 30 minutes
 ALGORITHM = "HS256"
-SG_CONNECT_ENDPOINT = ""
+CONNECT_ENDPOINT = ""
 OAUTH_INTERNAL = True
 
 oauth2_scheme_local = OAuth2PasswordBearer(
@@ -38,7 +38,7 @@ oauth2_scheme_external = OAuth2(
     scheme_name="implicit",
     flows=OAuthFlows(implicit=OAuthFlowImplicit(
         authorizationUrl=f"{settings.API_V1_STR}/login/access-token",
-        #authorizationUrl=f"{SG_CONNECT_ENDPOINT}/authorize",
+        #authorizationUrl=f"{CONNECT_ENDPOINT}/authorize",
         scopes={
             "openid": "Openid scope",
             "profile": "Profile scope"
@@ -99,7 +99,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     print(user)
     """
     print("getting")
-    user = FakeUser(email='roman@sgcib.com', is_active=True)
+    user = FakeUser(email='roman@gmail.com', is_active=True)
 
     if user is None:
         raise credentials_exception
@@ -107,7 +107,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 async def get_current_user_ext(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme_external)) -> str:
     try:
-        endpoint = SG_CONNECT_ENDPOINT
+        endpoint = CONNECT_ENDPOINT
         route = '/userinfo'
         async with httpx.AsyncClient() as client:#verify=certifi.where()) as client:
             res = await client.get(endpoint + route,headers={"Authorization":token})
@@ -117,8 +117,6 @@ async def get_current_user_ext(security_scopes: SecurityScopes, token: str = Dep
             if user is None:
                 user = models.User(
                     email=user_info.get('mail'),
-                    team=user_info.get('rc_sigle'),
-                    uuid=user_info.get('contact_id')
                 )
         else:
             raise HTTPException(status_code=400, detail=user_info)

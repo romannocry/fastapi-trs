@@ -82,11 +82,11 @@
     "updated_at": {
       "$date": "2023-07-22T19:49:01.431Z"
     },
-    "created_by": "roman.medioni@sgcib.com",
-    "updated_by": "roman.medioni@sgcib.com",
+    "created_by": "roman.medioni@gmail.com",
+    "updated_by": "roman.medioni@gmail.com",
     "access_rights": [
       {
-        "email": "roman.medioni@sgcib.com",
+        "email": "roman.medioni@gmail.com",
         "profile": "admin"
       }
     ],
