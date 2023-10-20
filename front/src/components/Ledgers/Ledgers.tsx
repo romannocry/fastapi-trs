@@ -69,11 +69,11 @@ function Ledgers() {
         
         <Row>
         
-        <Col sm="3" lg="2">
+        <Col sm="auto" lg="auto" className="d-none d-md-block">
         <NavBar/>
         </Col>
         
-        <Col sm="9" lg="10">
+        <Col className="p-0">
         <WorkspaceHeader onDataFromChild={handleDataFromChild}/>
         <LedgerList datafromChild={dataFromChild}/>
         </Col>
