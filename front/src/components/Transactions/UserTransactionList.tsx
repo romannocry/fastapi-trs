@@ -57,6 +57,7 @@ function UserTransactionList() {
     return (
         
         <div className="m-3">
+        <h5>Your transactions</h5>
         {transactions.map((transaction,index) => {
             return (
                 <TransactionItem transaction={transaction} key={index}/>

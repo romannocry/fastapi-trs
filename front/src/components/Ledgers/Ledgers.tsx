@@ -1,7 +1,6 @@
 import { red } from '@mui/material/colors';
 import React, { useState, useEffect, useRef } from 'react';
 import { Row, Col, Button, Collapse } from 'reactstrap';
-import NavBar from './../Navbar/NavBar';
 import WorkspaceHeader from './WorkspaceHeader';
 import LedgerList from './LedgerList';
 
@@ -32,11 +31,11 @@ function Ledgers() {
     
     const toggle = () => setIsOpen(!isOpen);
     const [dataFromChild, setDataFromChild] = useState(null);
-
+    
     const handleDataFromChild = (data:any) => {
-      // Handle the data received from the child
-      console.log('Data from child:', data);
-      setDataFromChild(data);
+        // Handle the data received from the child
+        console.log('Data from child:', data);
+        setDataFromChild(data);
     };
     
     useEffect(() => {         
@@ -49,7 +48,7 @@ function Ledgers() {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTc2ODA1MTIsInN1YiI6Ijg2YjM4NTUwLWJlMzMtNGQxYS1hZGQ5LTJjYTk2OGE2YzMyZiJ9.u1VqhlfAZN7Ymz7EMS7N9hnwyKYw38EC9eZVchbVAXU"      
-                },
+            },
         })
         .then((response) => response.json())
         .then((data) => {
@@ -65,21 +64,10 @@ function Ledgers() {
     }, []);
     
     return (
-        
-        
-        <Row>
-        
-        <Col sm="auto" lg="auto" className="d-none d-md-block">
-        <NavBar/>
-        </Col>
-        
-        <Col className="p-0">
-        <WorkspaceHeader onDataFromChild={handleDataFromChild}/>
         <LedgerList datafromChild={dataFromChild}/>
-        </Col>
-        </Row>
         );
     }
     
     export default Ledgers;
     
+    //<WorkspaceHeader onDataFromChild={handleDataFromChild}/>

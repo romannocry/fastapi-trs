@@ -61,10 +61,10 @@ manager = ConnectionManager()
 async def get_transactions_from_user(
     limit: Optional[int] = 100,
     offset: Optional[int] = 0,
-    #user_info: models.User = Depends(get_current_active_user),
+    user_info: models.User = Depends(get_current_active_user),
     #admin_user: models.User = Depends(get_current_active_superuser),
 ):
-    transactions = await models.Transaction.find({"created_by":"3roman.medioni@gmail.com"}).skip(offset).limit(limit).to_list()
+    transactions = await models.Transaction.find({"created_by":user_info.email}).skip(offset).limit(limit).to_list()
     return transactions
 
 

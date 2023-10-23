@@ -99,7 +99,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     print(user)
     """
     print("getting")
-    user = FakeUser(email='roman@gmail.com', is_active=True)
+    user = FakeUser(email='romanopp@gmail.com', is_active=True)
 
     if user is None:
         raise credentials_exception

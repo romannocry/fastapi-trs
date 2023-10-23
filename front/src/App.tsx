@@ -13,7 +13,7 @@ import { Container } from 'reactstrap';
 
 import CreateModel from './components/Ledgers/old/CreateModel';
 import CreateTransaction from './components/Transactions/CreateTransaction';
-import ModelSettings from './components/Ledgers/old/ModelSettings';
+import LedgerConfig from './components/Ledgers/LedgerConfig';
 import Layout from './components/Testing/layout';
 
 function App() {
@@ -33,7 +33,7 @@ function App() {
           <Route path="/layout" element={<Layout/>}/>
           <Route path="/ledgers" element={<Ledgers/>}/>
           <Route path="/ledger/create" element={<CreateModel/>}/>
-          <Route path="/ledger/edit/:ledgerId" element={<ModelSettings/>}/>
+          <Route path="/ledger/edit/:ledgerId" element={<LedgerConfig/>}/>
           <Route path="/ledger/:ledgerId/transactions" element={<LedgerTransactionList/>}/>
           <Route path="/ledger/:ledgerId/create-transaction">
             <Route path="" element={<CreateTransaction />} />
