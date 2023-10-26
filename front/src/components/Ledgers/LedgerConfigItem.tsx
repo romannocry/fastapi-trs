@@ -1,5 +1,5 @@
 import { red } from '@mui/material/colors';
-import React, { useState, useEffect, useRef, ReactNode } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Row, Col } from 'reactstrap';
 import { BrowserRouter, HashRouter, Link, Route, useParams } from "react-router-dom";
 import { Collapse, Nav, NavItem, NavLink, Button, TabContent, TabPane, Card, CardTitle, CardText} from 'reactstrap';
@@ -21,8 +21,6 @@ interface Ledger {
     triggers: Array<Object>; 
     group: string;
     quizMode: boolean;
-    [key: string]: any;
-
     
 }
 
@@ -30,8 +28,7 @@ function LedgerConfig() {
     const [isLoading, setIsLoading] = useState(false);
     const componentIsMounted = useRef(true);
     const [backendUrl,setbackEndUrl] = useState("http://localhost:8000")
-    const [ledger, setLedger] = useState(Object);
-    const [activeTab,setActiveTab] = useState("2")
+    const [activeTab,setActiveTab] = useState("1")
     const { ledgerId } = useParams();
 
 
@@ -55,7 +52,7 @@ function LedgerConfig() {
         })
           .then((response) => response.json())
           .then((data) => {
-            setLedger(data.ledgerSchema.properties);
+            //setSchema(data.ledgerSchema);
             console.log(data)
           })
           .catch((err) => {
@@ -98,29 +95,34 @@ function LedgerConfig() {
           </Row>
         </TabPane>
         <TabPane tabId="2">
-
-        {Object.entries(ledger).map(([key, value]) => (
-            <li
-            key={key}
-            ><strong>{key}</strong>: 
-            {Object.entries(value as { [key2: string]: unknown }).map(([key2, value]) => (
-                <ul><strong>{key2}</strong>: {Array.isArray(value) ? 
-                    <ul>
-                    {value.map((item, index) => (
-                      <li key={index}>{key} : {item}</li>
-                    ))}
-                  </ul>
-
-
-                    :
-                
-                    value as ReactNode
-                    }
-                    </ul>
-            ))}
-         </li>
-        ))}
-
+          <Row>
+            <Col sm="6">
+              <Card body>
+                <CardTitle>
+                  Special Title Treatment
+                </CardTitle>
+                <CardText>
+                  With supporting text below as a natural lead-in to additional content.
+                </CardText>
+                <Button>
+                  Go somewhere
+                </Button>
+              </Card>
+            </Col>
+            <Col sm="6">
+              <Card body>
+                <CardTitle>
+                  Special Title Treatment
+                </CardTitle>
+                <CardText>
+                  With supporting text below as a natural lead-in to additional content.
+                </CardText>
+                <Button>
+                  Go somewhere
+                </Button>
+              </Card>
+            </Col>
+          </Row>
         </TabPane>
       </TabContent>
       </>
