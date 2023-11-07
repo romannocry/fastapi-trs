@@ -5,6 +5,7 @@ import NavBar from '../Navbar/NavBar';
 import WorkspaceHeader from './WorkspaceHeader';
 import { FiList } from 'react-icons/fi';
 import { AiOutlineForm} from 'react-icons/ai';
+import {  BiSolidCog} from 'react-icons/bi';
 import { Link } from 'react-router-dom';
 
 interface Ledger {
@@ -49,6 +50,7 @@ function LedgerItem(ledger: any) {
                     <ButtonGroup size="sm">
                     <Button outline><Link to={`/ledger/${ledgerItem.uuid}/transactions`}><FiList/></Link></Button>
                     <Button outline><Link to={`/ledger/${ledgerItem.uuid}/create-transaction`}><AiOutlineForm/></Link></Button>
+                    <Button outline><Link to={`/ledger/${ledgerItem.uuid}/edit`}>< BiSolidCog/></Link></Button>
                     </ButtonGroup>
                 </ButtonToolbar>                
                 </Col>

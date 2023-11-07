@@ -2,8 +2,8 @@ import { red } from '@mui/material/colors';
 import React, { useState, useEffect, useRef, ReactNode } from 'react';
 import { Row, Col } from 'reactstrap';
 import { BrowserRouter, HashRouter, Link, Route, useParams } from "react-router-dom";
-import { Collapse, Nav, NavItem, NavLink, Button, TabContent, TabPane, Card, CardTitle, CardText} from 'reactstrap';
-
+import { Collapse, Table, Nav, NavItem, NavLink, Button, ButtonToolbar, ButtonGroup, Input, TabContent, TabPane, Card, CardTitle, CardText} from 'reactstrap';
+import {Buffer} from 'buffer';
 import WorkspaceHeader from './WorkspaceHeader';
 import LedgerList from './LedgerList';
 
@@ -22,16 +22,86 @@ interface Ledger {
     group: string;
     quizMode: boolean;
     [key: string]: any;
-
-    
 }
 
+interface ButtonLinkProps {
+  to: string;
+  children: React.ReactNode;
+}
+
+
+function listAllNodes(obj:any, parentNode = "") {
+    let nodes:any = []
+    for (const key in obj) {
+        const currentNode = parentNode ? `${parentNode}.${key}` : key;
+
+        if (obj[key].type !== "object" || !obj[key].properties) {
+            console.log(currentNode);
+            nodes.push(currentNode)
+        }
+
+        if (obj[key].type === "object" && obj[key].properties) {
+            const nodeProp = listAllNodes(obj[key].properties, currentNode);
+            nodes = nodes.concat(nodeProp);
+        }
+    }
+    return nodes
+}
+
+function getFields(obj:any, nodePath:any) {
+    const pathSegments = nodePath.split('.');
+    let currentNode = obj;
+
+    for (const segment of pathSegments) {
+        if (currentNode[segment] && currentNode[segment].type === "object" && currentNode[segment].properties) {
+            currentNode = currentNode[segment].properties;
+        } else {
+            currentNode = currentNode[segment];
+        }
+
+        if (!currentNode) {
+            // If the node path is invalid
+            return null;
+        }
+    }
+
+    return currentNode.enum;
+}
+
+function convertPathString(pathString:string,elem:any) {
+
+    const path = pathString;
+    const value = elem;
+    
+    const keys = path.split('.');
+    const resultObject = {};
+    
+    let currentObject:any = resultObject;
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      currentObject[key] = i === keys.length - 1 ? value : {};
+      currentObject = currentObject[key];
+    }
+    
+    //console.log(resultObject);
+    return resultObject
+
+}
+
+  
 function LedgerConfig() {
     const [isLoading, setIsLoading] = useState(false);
     const componentIsMounted = useRef(true);
     const [backendUrl,setbackEndUrl] = useState("http://localhost:8000")
     const [ledger, setLedger] = useState(Object);
+    const [nodes, setNodes] = useState([]);
+    //const [matrix, setMatrix] = useState([]);
     const [activeTab,setActiveTab] = useState("2")
+    const [selectedNode1, setSelectedNode1] = useState('');
+    const [selectedNode2, setSelectedNode2] = useState('');
+    const [rowsMatrix, setRowsMatrix] = useState<any>([]);
+    const [columnsMatrix, setColumnsMatrix] = useState<any>([]);
+
     const { ledgerId } = useParams();
 
 
@@ -43,6 +113,17 @@ function LedgerConfig() {
     useEffect(() => {         
         
     }, [/* field */]); // This effect runs whenever 'field' changes
+
+    useEffect(() => {         
+      setRowsMatrix(getFields(ledger,selectedNode1))
+      setColumnsMatrix(getFields(ledger,selectedNode2))
+    }, [selectedNode1,selectedNode2]); // This effect runs whenever 'field' changes
+
+    const generateB64str = (node1Item: any = "", node2Item:any = "") => {
+      let combination = Object.assign({}, convertPathString(selectedNode1, node1Item), convertPathString(selectedNode2, node2Item))
+      combination = Buffer.from(JSON.stringify(combination)).toString('base64')
+      return combination
+  };
 
     useEffect(() => {
         setIsLoading(true);
@@ -56,7 +137,11 @@ function LedgerConfig() {
           .then((response) => response.json())
           .then((data) => {
             setLedger(data.ledgerSchema.properties);
-            console.log(data)
+            console.log(data.ledgerSchema)
+            // get nodes from schema
+            const nodes = listAllNodes(data.ledgerSchema.properties)
+            setNodes(nodes)
+
           })
           .catch((err) => {
             console.error(err.message);
@@ -67,6 +152,29 @@ function LedgerConfig() {
         };
       }, []);
     
+      const handleNodeChange1 = (event:any) => {
+        const selectedValue = event.target.value;
+        // Do something with the selected value, e.g., call a function
+        console.log("Selected Node:", selectedValue);
+        setSelectedNode1(selectedValue)
+        // You can call your function here
+      };
+
+      const handleNodeChange2 = (event:any) => {
+        const selectedValue = event.target.value;
+        // Do something with the selected value, e.g., call a function
+        console.log("Selected Node:", selectedValue);
+        setSelectedNode2(selectedValue)
+      };
+
+      const ButtonLink: React.FC<ButtonLinkProps> = ({ to, children }) => {
+        return (
+          <Link to={to}>
+            <button>{children}</button>
+          </Link>
+        );
+      };
+      
     return (
         <>
         <Nav tabs>
@@ -98,8 +206,115 @@ function LedgerConfig() {
           </Row>
         </TabPane>
         <TabPane tabId="2">
+        <div className="sticky-top">
+        <Row className="m-0 p-3 gx-0" style={{backgroundColor:'rgb(255,255,255)'}}>
+            <ButtonToolbar>
+                <ButtonGroup size="sm" className="me-auto">
+                <Input
+                    bsSize="sm"
+                    className="mb-3"
+                    type="select"
+                    onChange={handleNodeChange1}
+                    value={selectedNode1}
+                >
+                <option value=""> {/* This is the blank/default option */}
+                    Default Select
+                </option>
+                {nodes.map((node,index) => {
+                return (
+                    <option key={index}>
+                    {node}
+                    </option>
+                    )     
+                })}
+                </Input>
+                </ButtonGroup>
+                
+                <ButtonGroup size="sm" className="me-auto">
+                <Input
+                    bsSize="sm"
+                    className="mb-3"
+                    type="select"
+                    onChange={handleNodeChange2}
+                    value={selectedNode2}
+                >
+                <option value=""> {/* This is the blank/default option */}
+                    Default Select
+                </option>
+                {nodes.map((node,index) => {
+                return (
+                    <option key={index}>
+                    {node}
+                    </option>
+                    )     
+                })}
+                </Input>
 
-        {Object.entries(ledger).map(([key, value]) => (
+                </ButtonGroup>
+            </ButtonToolbar>
+        </Row>
+        <hr style={{margin:0}}></hr>
+        </div>
+        <Table>
+          <thead>
+            <tr>
+            <td></td>
+            <td></td>
+            <td style={{justifyContent: 'center', alignItems: 'center' }} colSpan={3}>{selectedNode2}</td>
+            </tr>
+        <tr>
+        <td></td>
+        <td></td>
+        {(columnsMatrix ?? []).map((col: any,index: any) => {
+          return (
+            <th key={index}>{col}</th>
+          ) 
+        })}
+        </tr>
+        </thead>
+        <tbody>
+         <tr>
+        <td rowSpan={rowsMatrix && rowsMatrix.length ? rowsMatrix.length + 1 : 0}>{selectedNode1 }</td>
+        </tr> 
+
+        {(rowsMatrix ?? []).map((row: any,index: any) => {
+          
+          return (
+            
+            <tr key={index}>
+            <td>{row}</td>
+            {(columnsMatrix ?? []).map((col: any,index: any) => {
+            return (
+              <td key={index}><ButtonLink to={`/ledger/${ledgerId}/create-transaction/${generateB64str(row,col)}`}>{row}{col}</ButtonLink></td>
+              
+              ) 
+            })}
+            </tr>
+            
+            ) 
+           })}
+           </tbody>
+        </Table>
+
+        </TabPane>
+      </TabContent>
+      </>
+        );
+    }
+    
+    export default LedgerConfig;
+    
+    //<WorkspaceHeader onDataFromChild={handleDataFromChild}/>
+    /*
+
+        {matrix.map((node,index) => {
+            return (
+                <li key={index}><Button outline><Link target="_blank" to={`/ledger/${ledgerId}/create-transaction/${node}`}>{JSON.stringify(node)}</Link></Button></li>
+                )     
+            })}
+
+
+       {Object.entries(ledger).map(([key, value]) => (
             <li
             key={key}
             ><strong>{key}</strong>: 
@@ -119,14 +334,4 @@ function LedgerConfig() {
                     </ul>
             ))}
          </li>
-        ))}
-
-        </TabPane>
-      </TabContent>
-      </>
-        );
-    }
-    
-    export default LedgerConfig;
-    
-    //<WorkspaceHeader onDataFromChild={handleDataFromChild}/>
+        ))}*/

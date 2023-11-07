@@ -11,7 +11,7 @@ import LedgerTransactionList from './components/Transactions/LedgerTransactionLi
 import { BrowserRouter as Router, Routes, HashRouter, Link, Route, NavLink } from "react-router-dom";
 import { Container } from 'reactstrap';
 
-import CreateModel from './components/Ledgers/old/CreateModel';
+import LedgerCreator from './components/Ledgers/LedgerCreator';
 import CreateTransaction from './components/Transactions/CreateTransaction';
 import LedgerConfig from './components/Ledgers/LedgerConfig';
 import Layout from './components/Testing/layout';
@@ -32,13 +32,16 @@ function App() {
           <Routes>
           <Route path="/layout" element={<Layout/>}/>
           <Route path="/ledgers" element={<Ledgers/>}/>
-          <Route path="/ledger/create" element={<CreateModel/>}/>
-          <Route path="/ledger/edit/:ledgerId" element={<LedgerConfig/>}/>
+          <Route path="/ledger/create" element={<LedgerCreator/>}/>
+          <Route path="/ledger/:ledgerId/edit" element={<LedgerConfig/>}/>
+          <Route path="/ledger/:ledgerId" element={<CreateTransaction/>}/>
           <Route path="/ledger/:ledgerId/transactions" element={<LedgerTransactionList/>}/>
+          <Route path="/ledger/:ledgerId/transactions/:viewType" element={<LedgerTransactionList/>}/>
           <Route path="/ledger/:ledgerId/create-transaction">
             <Route path="" element={<CreateTransaction />} />
             <Route path=":payload" element={<CreateTransaction />} />
           </Route>  
+          <Route path="/transaction/edit/:transactionId" element={<LedgerTransactionList/>}/>
 
           <Route path="/" element={<Home/>}/>
 

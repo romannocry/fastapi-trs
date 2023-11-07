@@ -216,7 +216,7 @@ async def register_transaction_encoded(
     ledger = await models.Ledger.find_one({"uuid": ledgerUUID})
     if ledger is None:
         raise HTTPException(status_code=404, detail="Ledger not found")
-    elif ledger.expiry_date < datetime.now(): 
+    elif ledger.expiry_date is not None and ledger.expiry_date < datetime.now():
         raise HTTPException(status_code=402, detail=f"Ledger expired on {ledger.expiry_date.strftime('%d/%m/%Y')}")
     else: 
         try:

@@ -44,6 +44,8 @@ Use Cases:
 - Data enrichment
 - Static data hosting
 - Accounability: generate some acknowledgement email/Record decisions
+- simple thanks tool in signature
+- idea box
 
 Question for after - can we leverage it as a budgetary tool?
 - create a ledger form for budget input 
