@@ -33,7 +33,7 @@ function App() {
           <Route path="/layout" element={<Layout/>}/>
           <Route path="/ledgers" element={<Ledgers/>}/>
           <Route path="/ledger/create" element={<LedgerCreator/>}/>
-          <Route path="/ledger/:ledgerId/edit" element={<LedgerConfig/>}/>
+          <Route path="/ledger/edit/:ledgerId" element={<LedgerConfig/>}/>
           <Route path="/ledger/:ledgerId" element={<CreateTransaction/>}/>
           <Route path="/ledger/:ledgerId/transactions" element={<LedgerTransactionList/>}/>
           <Route path="/ledger/:ledgerId/transactions/:viewType" element={<LedgerTransactionList/>}/>

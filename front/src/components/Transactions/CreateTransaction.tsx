@@ -6,7 +6,6 @@ import {
   materialCells,
 } from '@jsonforms/material-renderers';
 import { BrowserRouter, HashRouter, Link, Route, useParams } from "react-router-dom";
-import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import CircularProgress from '@mui/material/CircularProgress';
 import {Buffer} from 'buffer';
@@ -16,6 +15,8 @@ import Backdrop from '@mui/material/Backdrop';
 import Container from 'react-bootstrap/Container';
 import {useSearchParams, useLocation, useNavigate} from 'react-router-dom';
 import { update } from '@jsonforms/core';
+import { ButtonToolbar, Button, ButtonGroup, Row, FormFeedback, FormText, Input, Label } from 'reactstrap';
+import { FaTelegramPlane} from 'react-icons/fa';
 
 
 function CreateTransaction()  {
@@ -182,8 +183,8 @@ function CreateTransaction()  {
   };
   
   return (
-    
-    <div>
+    <>
+        <Container fluid style={{ height: '100vh', width: '100vw' }}>
     {isSuccess ? (
       <div className="body">
       {/*<h2 className="text__loading">loading</h2> */}
@@ -203,9 +204,10 @@ function CreateTransaction()  {
         cells={materialCells}
         onChange={({ data, errors }) => setData(data)}
         />
-        <Button variant="contained" endIcon={<SendIcon />} onClick={() => handleTransaction()}>
-        Validate
-        </Button>
+                 <ButtonGroup size="sm">
+                 <Button className='success' onClick={() => handleTransaction()} ><FaTelegramPlane/>Validate</Button>
+             
+             </ButtonGroup>
         
         <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
@@ -216,9 +218,10 @@ function CreateTransaction()  {
         </Backdrop>
         </>
         )}
-        </div>
-        
-        
+
+
+        </Container>
+        </>
         
         );
       }

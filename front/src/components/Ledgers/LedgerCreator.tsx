@@ -125,15 +125,17 @@ function LedgerCreator() {
         const ajv = new Ajv();        
         try {
             const parsedValue = JSON.parse(value);
+            console.log(parsedValue)
             // Validate the schema using ajv
             const isValid = ajv.validateSchema(parsedValue);
             
             if (isValid) {
                 console.log("JSON schema is valid");
+                //let newVal = event.target.value
                 //setJsonSchema(parsedValue)
                 setLedger((prevLedger) => ({
                     ...prevLedger,
-                    ['ledgerSchema']: event.target.value,
+                    ['ledgerSchema']: parsedValue
                 }));
                 
             } else {
@@ -144,6 +146,7 @@ function LedgerCreator() {
             
         } catch (error) {
             //setUiSchema({});
+            console.log(error)
             console.log("Json incorrect")
         }
         
@@ -223,12 +226,10 @@ function LedgerCreator() {
     
     return (
         <>
-        <Container fluid style={{ height: '100vh', width: '100vw' }}>
         
-        <TabContent activeTab={activeTab}>
+        <TabContent activeTab={activeTab} style={{marginBottom:'47px'}}>
         <TabPane tabId="1">
         <Row>
-        {JSON.stringify(ledger)}
         <Form>
         <FormGroup>
         <Label vallue="" for="name">
@@ -253,9 +254,11 @@ function LedgerCreator() {
         <Label for="group">
         group
         </Label>
-        <Input value={ledger?.description} onChange={(e) => handleInputChange(e, "group")} />
+        <Input value={ledger?.group} onChange={(e) => handleInputChange(e, "group")} />
         
         </FormGroup>
+
+
         <FormGroup switch>
         <Input
         type="switch"
@@ -351,8 +354,7 @@ function LedgerCreator() {
                     </TabPane>
                     </TabContent>
                     
-                    </Container>
-                    <div className="sticky-bottom">
+                    <div className="sticky-bottom" style={{position:'fixed',width:'100vw'}}>
                     <Row className="m-0 p-3 gx-0" style={{backgroundColor:'rgb(255,255,255)'}}>
                     <ButtonToolbar>
                     <ButtonGroup size="sm" className="me-auto">
@@ -362,11 +364,11 @@ function LedgerCreator() {
                     <ButtonGroup size="sm">
                     {activeTab == "2" &&
                     <Button className='success' onClick={() => handleSubmit()} ><AiOutlineAppstoreAdd/>Create ledger </Button>
-                }
-                </ButtonGroup>
-                </ButtonToolbar>
-                </Row>
-                </div>
+                    }
+                    </ButtonGroup>
+                    </ButtonToolbar>
+                    </Row>
+                    </div>
                 </>
                 
                 );
