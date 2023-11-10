@@ -1,6 +1,6 @@
 import { red } from '@mui/material/colors';
 import React, { useState, useEffect, useRef } from 'react';
-import { Row, Col, Card, CardGroup, CardTitle, CardBody,ButtonToolbar, ButtonGroup, Button, Collapse } from 'reactstrap';
+import { Row, Col, Card, CardGroup, CardTitle, CardBody,ButtonToolbar, ButtonGroup, Button, Collapse, Placeholder} from 'reactstrap';
 import NavBar from '../Navbar/NavBar';
 import WorkspaceHeader from './WorkspaceHeader';
 import { FiList } from 'react-icons/fi';
@@ -37,6 +37,7 @@ function LedgerItem(ledger: any) {
     return (
         
         <Row className="mb-1 gx-0" style={{borderRadius:'8px', fontSize: '14px', boxShadow: ''}}>
+
         <Col sm="12">
             <Card body style={{padding:5, borderColor:'rgb(240,240,240)'}}>
             <Row>

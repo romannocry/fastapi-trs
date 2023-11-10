@@ -5,6 +5,7 @@ import { BrowserRouter, HashRouter, Link, Route, useParams } from "react-router-
 import { Collapse, Nav, NavItem, NavLink, Button, TabContent, TabPane, Card, CardTitle, CardText} from 'reactstrap';
 import { ButtonToolbar, ButtonGroup, Form, FormGroup, FormFeedback, FormText, Input, Label } from 'reactstrap';
 import { Container } from 'reactstrap';
+import { useNavigate } from "react-router-dom";
 
 import Editor, { DiffEditor, useMonaco, loader } from "@monaco-editor/react";
 import { JsonForms } from '@jsonforms/react';
@@ -101,13 +102,11 @@ function LedgerCreator() {
     const componentIsMounted = useRef(true);
     const [backendUrl,setbackEndUrl] = useState("http://localhost:8000")
     const [activeTab,setActiveTab] = useState("1")
-    const { ledgerId } = useParams();
     const [formData, setFormData] = useState<any>({});
-    const [jsonformSchema, setJsonformSchema] = useState<any>({});
     //const [jsonSchema, setJsonSchema] = useState(newschema);
     const [ledger, setLedger] = useState<Ledger>(newLedger);
-    const [state, setState] = useState(true);
-    
+    const navigate = useNavigate();
+
     
     const ToggleCreationStep= () => {
         if (activeTab == "1"){
@@ -212,7 +211,9 @@ function LedgerCreator() {
               })
               .then((data) => {
                 console.log(data)
-              })
+                navigate(`/ledger/${data.uuid}/edit`);
+
+            })
 
         } catch (error) {
             console.log("submit error")

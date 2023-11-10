@@ -31,6 +31,7 @@ class LedgerCreate(LedgerBase):
     updated_by: Optional[EmailStr] = None
     triggers: Optional[List] = Field(default_factory=list)
     group: Optional[str] = None
+    uuid: UUID
 
 # Properties to receive via API on update
 class LedgerUpdate(LedgerBase):
