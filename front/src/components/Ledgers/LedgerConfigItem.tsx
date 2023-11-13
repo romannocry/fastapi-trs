@@ -27,7 +27,6 @@ interface Ledger {
 function LedgerConfigItem() {
     const [isLoading, setIsLoading] = useState(false);
     const componentIsMounted = useRef(true);
-    const [backendUrl,setbackEndUrl] = useState("http://localhost:8000")
     const [activeTab,setActiveTab] = useState("1")
     const { ledgerId } = useParams();
 

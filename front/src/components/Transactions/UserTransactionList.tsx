@@ -5,6 +5,8 @@ import NavBar from '../Navbar/NavBar';
 import LedgerItem from './TransactionItem';
 import TransactionItem from './TransactionItem';
 
+const API_URL = import.meta.env.VITE_BACKEND_API_URL
+
 interface Transaction {
     uuid: string;
     legderUUID: string;
@@ -19,7 +21,6 @@ function UserTransactionList() {
     const [isLoading, setIsLoading] = useState(false);
     const componentIsMounted = useRef(true);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [backendUrl,setbackEndUrl] = useState("http://localhost:8000")
     const [isOpen, setIsOpen] = useState(false);
     const [listType, setListType] = useState('grid');
     
@@ -33,7 +34,7 @@ function UserTransactionList() {
     
     useEffect(() => {
         setIsLoading(true);
-        fetch(backendUrl + '/api/v1/transactions?limit=1000', {
+        fetch(API_URL + 'transactions?limit=1000', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

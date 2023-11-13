@@ -5,6 +5,8 @@ import NavBar from '../Navbar/NavBar';
 import WorkspaceHeader from './WorkspaceHeader';
 import LedgerItem from './LedgerItem';
 
+const API_URL = import.meta.env.VITE_BACKEND_API_URL
+
 interface Ledger {
     uuid: string;
     name: string;
@@ -26,7 +28,6 @@ function LedgerList(datafromChild:any) {
     const [isLoading, setIsLoading] = useState(false);
     const componentIsMounted = useRef(true);
     const [ledgers, setLedgers] = useState<Ledger[]>([]);
-    const [backendUrl,setbackEndUrl] = useState("http://localhost:8000")
     const [isOpen, setIsOpen] = useState(false);
     const [listType, setListType] = useState('grid');
     
@@ -41,7 +42,7 @@ function LedgerList(datafromChild:any) {
     
     useEffect(() => {
         setIsLoading(true);
-        fetch(backendUrl + '/api/v1/ledgers?limit=1000', {
+        fetch(API_URL + 'ledgers?limit=1000', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

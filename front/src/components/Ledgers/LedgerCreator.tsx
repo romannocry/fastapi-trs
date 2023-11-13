@@ -21,6 +21,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import TextField from '@mui/material/TextField';
 
+const API_URL = import.meta.env.VITE_BACKEND_API_URL
 
 interface Ledger {
     uuid?: string;
@@ -100,7 +101,6 @@ let newLedger: Ledger = {
 function LedgerCreator() {
     const [isLoading, setIsLoading] = useState(false);
     const componentIsMounted = useRef(true);
-    const [backendUrl,setbackEndUrl] = useState("http://localhost:8000")
     const [activeTab,setActiveTab] = useState("1")
     const [formData, setFormData] = useState<any>({});
     //const [jsonSchema, setJsonSchema] = useState(newschema);
@@ -195,7 +195,7 @@ function LedgerCreator() {
         console.log("handling submit")
         try {
             console.log("submit")
-            fetch(backendUrl+'/api/v1/ledgers', {
+            fetch(API_URL+'ledgers', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

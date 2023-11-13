@@ -6,6 +6,8 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 import 'ag-grid-community/styles/ag-theme-material.css';
 import { Button } from 'reactstrap';
 
+const API_URL = import.meta.env.VITE_BACKEND_API_URL
+const WS_URL = import.meta.env.VITE_BACKEND_WS_URL
 
 interface Transaction {
   uuid: string;
@@ -16,10 +18,7 @@ interface Transaction {
   payload_hist: string; 
 }
 
-
-
 function LedgerTransactionList() {
-    const [backendUrl,setbackEndUrl] = useState("http://localhost:8000")
     const { ledgerId } = useParams();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [gridApiRefState, setGridApiRef] = useState<any>(null)
@@ -55,7 +54,7 @@ function LedgerTransactionList() {
        //console.log(gridApiRef.current)
        //gridOptionsRef.current = params
         // Using Fetch API
-        fetch(backendUrl+'/api/v1/transactions/'+ledgerId+'?limit=1000', {
+        fetch(API_URL+'transactions/'+ledgerId+'?limit=1000', {
           method: 'GET',
           headers: {
           'Content-Type': 'application/json',
@@ -114,7 +113,7 @@ function LedgerTransactionList() {
         socketRef.current = true;
         console.log(transactions);
 
-        var ws = new WebSocket('ws://localhost:8000/api/v1/transactions/ws/'+ledgerId);
+        var ws = new WebSocket(WS_URL+'transactions/ws/'+ledgerId);
         
         ws.onopen = () => ws.send("token");
 

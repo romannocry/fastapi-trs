@@ -4,6 +4,8 @@ import { Row, Col, Button, Collapse } from 'reactstrap';
 import WorkspaceHeader from './WorkspaceHeader';
 import LedgerList from './LedgerList';
 
+const API_URL = import.meta.env.VITE_BACKEND_API_URL
+
 interface Ledger {
     uuid: string;
     name: string;
@@ -26,7 +28,6 @@ function Ledgers() {
     const componentIsMounted = useRef(true);
     const [ledgers, setLedgers] = useState<Ledger[]>([]);
     
-    const [backendUrl,setbackEndUrl] = useState("http://localhost:8000")
     const [isOpen, setIsOpen] = useState(false);
     
     const toggle = () => setIsOpen(!isOpen);
@@ -43,7 +44,7 @@ function Ledgers() {
     }, [/* field */]); // This effect runs whenever 'field' changes
     useEffect(() => {
         setIsLoading(true);
-        fetch(backendUrl + '/api/v1/ledgers/', {
+        fetch(API_URL + 'ledgers/', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

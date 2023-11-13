@@ -256,6 +256,7 @@ async def register_transaction_encoded(
                 await transaction.create()
                 transaction_json = json_util.dumps(convert_uuids(transaction.dict()))
                 await manager.broadcast(transaction_json,transaction.ledgerUUID)
+                await manager.broadcast(user_info.email,transaction.ledgerUUID)
                 return transaction
             #except errors.DuplicateKeyError:
             except Exception as e: 

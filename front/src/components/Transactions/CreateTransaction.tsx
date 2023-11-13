@@ -18,11 +18,11 @@ import { update } from '@jsonforms/core';
 import { ButtonToolbar, Button, ButtonGroup, Row, FormFeedback, FormText, Input, Label } from 'reactstrap';
 import { FaTelegramPlane} from 'react-icons/fa';
 
+const API_URL = import.meta.env.VITE_BACKEND_API_URL
 
 function CreateTransaction()  {
   
   const [data, setData] = useState({});
-  const [backendUrl,setbackEndUrl] = useState("http://localhost:8000")
   const [schema, setSchema] = useState<any>({});
   const componentIsMounted = useRef(true);
   const { ledgerId } = useParams();
@@ -39,7 +39,7 @@ function CreateTransaction()  {
   //console.log("loading Form")
   useEffect(() => {
     setIsLoading(true);
-    fetch(backendUrl + '/api/v1/ledgers/' + ledgerId, {
+    fetch(API_URL + 'ledgers/' + ledgerId, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ function CreateTransaction()  {
         setSchema(data.ledgerSchema);
     
         // Now, fetch transactions using the user ID or any relevant information
-        return fetch(backendUrl + '/api/v1/transactions/me/' + ledgerId, {
+        return fetch(API_URL + 'transactions/me/' + ledgerId, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ function CreateTransaction()  {
 
       //Post transaction with payload if data not empty
       if (!isPayloadEmpty) {
-        fetch(backendUrl+'/api/v1/transactions/'+ledgerId+'/'+payload_b64, {
+        fetch(API_URL+'transactions/'+ledgerId+'/'+payload_b64, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
