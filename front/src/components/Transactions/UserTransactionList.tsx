@@ -1,9 +1,10 @@
 import { red } from '@mui/material/colors';
 import React, { useState, useEffect, useRef } from 'react';
-import { Row, Col, Button, Collapse, CardDeck, CardGroup } from 'reactstrap';
+import { Row, Col, Card, CardGroup, CardTitle, CardBody, ButtonToolbar, ButtonGroup, Button, Collapse, Pagination, PaginationItem, PaginationLink } from 'reactstrap';
 import NavBar from '../Navbar/NavBar';
 import LedgerItem from './TransactionItem';
 import TransactionItem from './TransactionItem';
+import { Table } from 'reactstrap';
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL
 
@@ -59,11 +60,88 @@ function UserTransactionList() {
         
         <div className="m-3">
         <h5>Your transactions</h5>
+        <Pagination size="sm">
+            <PaginationItem>
+                <PaginationLink
+                first
+                href="#"
+                />
+            </PaginationItem>
+            <PaginationItem>
+                <PaginationLink
+                href="#"
+                previous
+                />
+            </PaginationItem>
+            <PaginationItem>
+                <PaginationLink href="#">
+                1
+                </PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+                <PaginationLink href="#">
+                2
+                </PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+                <PaginationLink href="#">
+                3
+                </PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+                <PaginationLink href="#">
+                4
+                </PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+                <PaginationLink href="#">
+                5
+                </PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+                <PaginationLink
+                href="#"
+                next
+                />
+            </PaginationItem>
+            <PaginationItem>
+                <PaginationLink
+                href="#"
+                last
+                />
+            </PaginationItem>
+        </Pagination>
+
+        <Table
+        responsive
+        size=""
+        style={{ fontSize: '12px' }}
+        >
+        <thead>
+            <tr>
+            <th>
+                #id
+            </th>
+            <th>
+                Payload
+            </th>
+            <th>
+                #id2
+            </th>
+            <th>
+                actions
+            </th>
+            </tr>
+        </thead>
+        <tbody>
+
         {transactions.map((transaction,index) => {
             return (
                 <TransactionItem transaction={transaction} key={index}/>
                 )     
             })}
+        </tbody>
+            </Table>
             </div>
             
             );

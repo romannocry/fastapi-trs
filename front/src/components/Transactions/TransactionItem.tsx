@@ -1,6 +1,6 @@
 import { red } from '@mui/material/colors';
 import React, { useState, useEffect, useRef } from 'react';
-import { Row, Col, Card, CardGroup, CardTitle, CardBody, ButtonToolbar, ButtonGroup, Button, Collapse } from 'reactstrap';
+import { Row, Col, Card, CardGroup, CardTitle, CardBody, ButtonToolbar, ButtonGroup, Button, Collapse, Pagination, PaginationItem, PaginationLink } from 'reactstrap';
 import NavBar from '../Navbar/NavBar';
 import { AiFillEdit } from 'react-icons/ai';
 import { Link } from 'react-router-dom';
@@ -38,6 +38,38 @@ function TransactionItem(transaction: any) {
     
     return (
         
+      <tr>
+        <td>{TransactionItem.uuid}</td>
+        <td>
+        {Object.entries(TransactionItem.payload).map(([key, value]) => (
+                <div key={key}>
+                <strong>{key}:</strong> {renderValue(value)}
+                </div>
+            ))}
+        </td>
+        <td>{TransactionItem.ledgerUUID}</td>
+        <td>
+
+        <ButtonToolbar >
+                <ButtonGroup size="sm">
+                <Button outline><Link to={`/ledger/${TransactionItem.ledgerUUID}/create-transaction`}><AiFillEdit/></Link></Button>
+                <Button  outline>List</Button>
+                </ButtonGroup>
+            </ButtonToolbar>
+        </td>
+      </tr>
+
+            
+        );
+        }
+        
+        export default TransactionItem;
+        
+        /**
+         * 
+         * 
+         *         
+         * 
         <Row className="mb-1 gx-0" style={{borderRadius:'8px', fontSize: '14px', boxShadow: ''}}>
         <Col sm="12">
             <Card body style={{padding:5, borderColor:'rgb(240,240,240)'}}>
@@ -65,9 +97,5 @@ function TransactionItem(transaction: any) {
             </Card>
         </Col>
         </Row>
-            
-        );
-        }
-        
-        export default TransactionItem;
-        
+
+         */

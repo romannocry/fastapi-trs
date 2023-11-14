@@ -40,7 +40,7 @@ function NavBar() {
         </NavItem>
         <NavItem>
         <NavLink href="#" className={`${showText ? 'd-none d-lg-inline ' : 'd-lg-none'}`}>
-        <FiList/> Another Link
+        <FiList/> Another Link Another link
         </NavLink>
         </NavItem>
         <NavItem>
