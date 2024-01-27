@@ -54,7 +54,7 @@ function LedgerTransactionList() {
        //console.log(gridApiRef.current)
        //gridOptionsRef.current = params
         // Using Fetch API
-        fetch(API_URL+'transactions/'+ledgerId+'?limit=1000', {
+        fetch(API_URL+'transactions/ledger/'+ledgerId+'?limit=1000', {
           method: 'GET',
           headers: {
           'Content-Type': 'application/json',

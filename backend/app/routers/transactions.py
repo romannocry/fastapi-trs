@@ -67,8 +67,24 @@ async def get_transactions_from_user(
     transactions = await models.Transaction.find({"created_by":user_info.email}).skip(offset).limit(limit).to_list()
     return transactions
 
+@router.get("/{transactionUUID}", response_model=schemas.Transaction)
+async def get_transaction_by_id(
+    transactionUUID: UUID,
+    limit: Optional[int] = 10,
+    offset: Optional[int] = 0,
+    user_info: models.User = Depends(get_current_active_user),
+    #admin_user: models.User = Depends(get_current_active_superuser),
+):
 
-@router.get("/{ledgerUUID}", response_model=List[schemas.Transaction])
+    transaction = await models.Transaction.find_one({
+        "uuid": transactionUUID,
+        })
+    
+
+
+    return transaction
+
+@router.get("/ledger/{ledgerUUID}", response_model=List[schemas.Transaction])
 async def get_transactions_from_ledger(
     background_tasks: BackgroundTasks,
     ledgerUUID: UUID,
@@ -99,7 +115,7 @@ async def get_transactions_from_ledger(
         }).skip(offset).limit(limit).to_list()
     return transactions
 
-@router.get("/me/{ledgerUUID}", response_model=List[schemas.Transaction])
+@router.get("/ledger/me/{ledgerUUID}", response_model=List[schemas.Transaction])
 async def get_transactions_from_current_user_and_ledger(
     background_tasks: BackgroundTasks,
     ledgerUUID: UUID,
