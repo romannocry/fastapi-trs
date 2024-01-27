@@ -36,7 +36,7 @@ function CreateTransaction()  {
   const location = useLocation()
   const navigate = useNavigate()
   
-  console.log("loading Form")
+  //console.log("loading Form")
   useEffect(() => {
     setIsLoading(true);
     fetch(API_URL + 'ledgers/' + ledgerId, {
